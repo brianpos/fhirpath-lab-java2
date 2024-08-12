@@ -1,0 +1,36 @@
+{
+    "resourceType": "Parameters",
+    "parameter": [
+      {
+        "name": "outcome",
+        "resource": {
+          "resourceType": "OperationOutcome",
+          "issue": [
+            {
+              "severity": "information",
+              "code": "informational"
+            }
+          ]
+        }
+      },
+      {
+        "name": "result",
+        "valueString": "{\n  \"resourceType\" : \"Bundle\",\n  \"id\" : \"smile\",\n  \"type\" : \"transaction\",\n  \"entry\" : [{\n      \"resource\": {\n        \"resourceType\": \"Patient\",\n        \"id\": \"example\",\n        \"meta\": {\n          \"versionId\": \"290\",\n          \"lastUpdated\": \"2024-07-03T15:52:48.578+00:00\",\n          \"source\": \"#jgx7LXv30rtazIgL\"\n        },\n        \"text\": {\n          \"status\": \"generated\",\n          \"div\": \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><div class=\\\"hapiHeaderText\\\">Homer <b>SIMPSON </b></div><table class=\\\"hapiPropertyTable\\\"><tbody></tbody></table></div>\"\n        },\n        \"name\": [{\n            \"family\": \"Simpson\",\n            \"given\": [\"Homer\"]\n          }],\n        \"gender\": \"male\"\n      },\n      \"fullUrl\": \"http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/example\",\n      \"request\": {\n        \"method\": \"POST\",\n        \"url\": \"Observation\"\n      }\n    }]\n}"
+      },
+      {
+        "name": "parameters",
+        "part": [
+          {
+            "name": "evaluator",
+            "valueString": "Java 6.3.19 (r4b)"
+          },
+          {
+            "name": "map"
+          }
+        ]
+      },
+      {
+        "name": "trace"
+      }
+    ]
+  }

@@ -1,29 +1,27 @@
 package com.fhirpathlab;
 
+import org.hl7.fhir.exceptions.FHIRException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.http.MediaType;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.boot.test.context.TestConfiguration;
 
 import java.io.File;
 import com.google.common.io.Files;
 import java.nio.charset.Charset;
 
-import org.hl7.fhir.exceptions.FHIRException;
-
-@WebMvcTest(FhirpathLabController.class)
-@Import(FhirpathLabControllerTest.TestConfig.class)
-class FhirpathLabControllerTest {
+@WebMvcTest(FhirpathLabTransformController.class)
+@Import(MapperControllerTest.TestConfig.class)
+class MapperControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -32,9 +30,9 @@ class FhirpathLabControllerTest {
     static class TestConfig {
 
         @Bean
-        public FhirpathLabSimpleWorkerContextR4B simpleWorkerContext() throws java.io.IOException, FHIRException {
-            // Return the real instance of FhirpathLabSimpleWorkerContextR4B
-            return new FhirpathLabSimpleWorkerContextR4B();
+        public FhirpathLabSimpleWorkerContextR5 simpleWorkerContext() throws java.io.IOException, FHIRException {
+            // Return the real instance of FhirpathLabSimpleWorkerContextR5
+            return new FhirpathLabSimpleWorkerContextR5();
         }
     }
 
@@ -51,29 +49,11 @@ class FhirpathLabControllerTest {
     }
 
     @Test
-    void testHelloEndpoint() throws Exception {
-        mockMvc.perform(get("/fhir/hello"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hello, FHIRPath Lab!{\"resourceType\":\"Patient\",\"id\":\"pat1\"}"));
-    }
+    void testTransform2() throws Exception {
+        String jsonContent = ReadTestFile("transform", "request", "json");
+        String expectedResponse = ReadTestFile("transform", "response", "json");
 
-    @Test
-    void testPutPatient() throws Exception {
-        String jsonContent = "{\"resourceType\":\"Patient\",\"id\":\"pat1\"}";
-
-        mockMvc.perform(put("/fhir/patient")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Received patient with ID: pat1"));
-    }
-
-    @Test
-    void testSimple() throws Exception {
-        String jsonContent = ReadTestFile("simple", "request", "json");
-        String expectedResponse = ReadTestFile("simple", "response", "json");
-
-        mockMvc.perform(put("/fhir/fhirpath")
+        mockMvc.perform(put("/fhir/$transform")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
                 .andExpect(status().isOk())

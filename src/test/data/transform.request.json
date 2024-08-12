@@ -1,0 +1,34 @@
+{
+    "resourceType": "Parameters",
+    "parameter": [
+        {
+            "name": "map",
+            "valueString": "map \"http://fhirpath-lab.com/StructureMap/intro-patient-map\" = \"IntroPatientMap\"\n\nuses \"http://hl7.org/fhir/StructureDefinition/Patient\" as source\nuses \"http://hl7.org/fhir/StructureDefinition/Bundle\" as target\n\ngroup patientMap(source src : Patient, target bundle : Bundle) {\n  src -> bundle.id = ('smile') \"bundle-id\";\n  src -> bundle.type = 'transaction' \"bundle-type\";\n\n  // create a new entry and put the patient resource in it\n  src -> bundle.entry as entry, entry.resource = src then\n    SetEntryData(src, entry) \"prep-entry\";\n}\n\ngroup SetEntryData(source src: Patient, target entry)\n{\n  src.id as patientId log('patientId: ' & %src.id) -> entry.fullUrl = append('http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/', patientId);\n  \n  src -> entry.request as request then {\n    src -> request.method = 'POST' \"obsn-request-method\";\n    src -> request.url = 'Observation' \"obsn-request-url\";\n  } \"obsn-entry-request\";\n}\n      "
+        },
+        {
+            "name": "resource",
+            "resource": {
+                "resourceType": "Patient",
+                "id": "example",
+                "meta": {
+                    "versionId": "290",
+                    "lastUpdated": "2024-07-03T15:52:48.578+00:00",
+                    "source": "#jgx7LXv30rtazIgL"
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Homer <b>SIMPSON </b></div><table class=\"hapiPropertyTable\"><tbody></tbody></table></div>"
+                },
+                "name": [
+                    {
+                        "family": "Simpson",
+                        "given": [
+                            "Homer"
+                        ]
+                    }
+                ],
+                "gender": "male"
+            }
+        }
+    ]
+}

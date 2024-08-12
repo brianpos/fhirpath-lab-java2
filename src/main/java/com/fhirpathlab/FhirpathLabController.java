@@ -14,6 +14,14 @@ import org.hl7.fhir.r4b.model.Patient;
 @RestController
 @RequestMapping("/fhir")
 public class FhirpathLabController {
+
+    private final FhirpathLabSimpleWorkerContextR4B context;
+
+    public FhirpathLabController(FhirpathLabSimpleWorkerContextR4B context)
+    {
+        this.context = context;
+    }
+
     @GetMapping("/hello")
     public String hello() {
         var patient = new Patient();
@@ -93,11 +101,9 @@ public class FhirpathLabController {
             var resultPart = parameters.addParameter();
             resultPart.setName("result");
 
-            org.hl7.fhir.r4b.context.IWorkerContext context = new org.hl7.fhir.r4b.context.SimpleWorkerContext();
             var engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(context);
 
-            FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices();
-            services.traceToParameter = resultPart;
+            FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices(resultPart);
             engine.setHostServices(services);
             var result = engine.evaluate(parameters, "descendants().trace('prop').id");
 

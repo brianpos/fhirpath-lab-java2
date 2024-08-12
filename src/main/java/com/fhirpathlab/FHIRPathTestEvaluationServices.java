@@ -21,11 +21,20 @@ import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.PathEngineException;
 
 public class FHIRPathTestEvaluationServices implements IEvaluationContext {
-  public Parameters.ParametersParameterComponent traceToParameter;
-  public java.util.HashMap<String, org.hl7.fhir.r4b.model.Base> mapVariables;
+  private Parameters.ParametersParameterComponent traceToParameter;
+  private java.util.HashMap<String, org.hl7.fhir.r4b.model.Base> mapVariables;
+  
+  public FHIRPathTestEvaluationServices(Parameters.ParametersParameterComponent theTraceToParameter) {
+    traceToParameter = theTraceToParameter;
+    mapVariables = new HashMap<>();
+  }
 
   public FHIRPathTestEvaluationServices() {
     mapVariables = new HashMap<>();
+  }
+
+  public java.util.Map<String, org.hl7.fhir.r4b.model.Base> getVariables() {
+    return mapVariables;
   }
 
   public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
