@@ -15,7 +15,7 @@ public class ParamUtils {
     return result;
   }
 
-  public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
+  public static ParametersParameterComponent add(Parameters.ParametersParameterComponent theParameter,
       String theName, org.hl7.fhir.r4b.model.DataType theValue) {
     var result = theParameter.addPart();
     result.setName(theName);
@@ -23,7 +23,7 @@ public class ParamUtils {
     return result;
   }
 
-  public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
+  public static ParametersParameterComponent add(Parameters.ParametersParameterComponent theParameter,
       String theName, String theValue) {
     var result = theParameter.addPart();
     result.setName(theName);
@@ -31,14 +31,14 @@ public class ParamUtils {
     return result;
   }
 
-  public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
+  public static ParametersParameterComponent add(Parameters.ParametersParameterComponent theParameter,
       String theName) {
     var result = theParameter.addPart();
     result.setName(theName);
     return result;
   }
 
-  public static ParametersParameterComponent addPartResource(Parameters.ParametersParameterComponent theParameter,
+  public static ParametersParameterComponent add(Parameters.ParametersParameterComponent theParameter,
       String theName, org.hl7.fhir.r4b.model.Resource theValue) {
     var result = theParameter.addPart();
     result.setName(theName);

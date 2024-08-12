@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.http.MediaType;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -53,7 +53,7 @@ class MapperControllerTest {
         String jsonContent = ReadTestFile("transform", "request", "json");
         String expectedResponse = ReadTestFile("transform", "response", "json");
 
-        mockMvc.perform(put("/fhir/$transform")
+        mockMvc.perform(post("/fhir/$transform")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent))
                 .andExpect(status().isOk())

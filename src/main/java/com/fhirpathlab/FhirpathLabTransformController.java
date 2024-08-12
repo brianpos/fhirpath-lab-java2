@@ -54,7 +54,7 @@ public class FhirpathLabTransformController {
         responseParameters.setId("map");
         var paramsTrace = ParamUtils.add(responseParameters, "trace");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.addPart(paramsPart, "evaluator", "Java 6.3.19 (r4b)");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.3.19 (r4b)");
 
         try {
             // Determine the appropriate parser based on Content-Type header
@@ -72,7 +72,7 @@ public class FhirpathLabTransformController {
 
             // read the `map` named parameter from the valueString
             var fml = parameters.getParameter("map").getValue().primitiveValue();
-            ParamUtils.addPart(paramsPart, "map", fml);
+            ParamUtils.add(paramsPart, "map", fml);
 
             // read the `resource` named parameter
             var resource = parameters.getParameter("resource").getResource();

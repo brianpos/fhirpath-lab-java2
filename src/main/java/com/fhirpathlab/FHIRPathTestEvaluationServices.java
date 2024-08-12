@@ -23,7 +23,7 @@ import org.hl7.fhir.exceptions.PathEngineException;
 public class FHIRPathTestEvaluationServices implements IEvaluationContext {
   private Parameters.ParametersParameterComponent traceToParameter;
   private java.util.HashMap<String, org.hl7.fhir.r4b.model.Base> mapVariables;
-  
+
   public FHIRPathTestEvaluationServices(Parameters.ParametersParameterComponent theTraceToParameter) {
     traceToParameter = theTraceToParameter;
     mapVariables = new HashMap<>();
@@ -35,29 +35,6 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
 
   public java.util.Map<String, org.hl7.fhir.r4b.model.Base> getVariables() {
     return mapVariables;
-  }
-
-  public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
-      String theName, org.hl7.fhir.r4b.model.DataType theValue) {
-    var result = theParameter.addPart();
-    result.setName(theName);
-    result.setValue(theValue);
-    return result;
-  }
-
-  public static ParametersParameterComponent addPart(Parameters.ParametersParameterComponent theParameter,
-      String theName) {
-    var result = theParameter.addPart();
-    result.setName(theName);
-    return result;
-  }
-
-  private static ParametersParameterComponent addPartResource(Parameters.ParametersParameterComponent theParameter,
-      String theName, org.hl7.fhir.r4b.model.Resource theValue) {
-    var result = theParameter.addPart();
-    result.setName(theName);
-    result.setResource(theValue);
-    return result;
   }
 
   @Override
@@ -82,13 +59,14 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
   @Override
   public boolean log(String argument, List<org.hl7.fhir.r4b.model.Base> data) {
     if (traceToParameter != null) {
-      Parameters.ParametersParameterComponent traceValue = addPart(traceToParameter, "trace", new StringType(argument));
+      Parameters.ParametersParameterComponent traceValue = ParamUtils.add(traceToParameter, "trace",
+          new StringType(argument));
       org.hl7.fhir.r4b.formats.IParser parser = new org.hl7.fhir.r4b.formats.JsonParser();
 
       for (org.hl7.fhir.r4b.model.Base nextOutput : data) {
         try {
           if (nextOutput instanceof org.hl7.fhir.r4b.model.Resource) {
-            addPartResource(traceValue, nextOutput.fhirType(), (org.hl7.fhir.r4b.model.Resource) nextOutput);
+            ParamUtils.add(traceValue, nextOutput.fhirType(), (org.hl7.fhir.r4b.model.Resource) nextOutput);
 
           } else if (nextOutput instanceof org.hl7.fhir.r4b.model.BackboneElement) {
             Parameters.ParametersParameterComponent backboneValue = traceValue.addPart();
@@ -101,28 +79,28 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
           } else if (nextOutput instanceof StringType) {
             StringType st = (StringType) nextOutput;
             if (st.getValue() == "")
-              addPart(traceValue, "empty-string");
+              ParamUtils.add(traceValue, "empty-string");
             else
-              addPart(traceValue, nextOutput.fhirType(), (StringType) nextOutput);
+              ParamUtils.add(traceValue, nextOutput.fhirType(), (StringType) nextOutput);
 
           } else if (nextOutput instanceof Enumeration) {
             var en = (org.hl7.fhir.r4b.model.ICoding) nextOutput;
-            addPart(traceValue, nextOutput.fhirType(), new org.hl7.fhir.r4b.model.CodeType(en.getCode()));
+            ParamUtils.add(traceValue, nextOutput.fhirType(), new org.hl7.fhir.r4b.model.CodeType(en.getCode()));
 
           } else if (nextOutput instanceof Extension) {
             var ext = (org.hl7.fhir.r4b.model.Extension) nextOutput;
-            addPart(traceValue, nextOutput.fhirType()).addExtension(ext);
+            ParamUtils.add(traceValue, nextOutput.fhirType()).addExtension(ext);
 
           } else if (nextOutput instanceof DataType) {
             var dt = (DataType) nextOutput;
-            addPart(traceValue, nextOutput.fhirType(), dt);
+            ParamUtils.add(traceValue, nextOutput.fhirType(), dt);
 
           } else {
-            addPart(traceValue, nextOutput.fhirType(), (DataType) nextOutput);
+            ParamUtils.add(traceValue, nextOutput.fhirType(), (DataType) nextOutput);
 
           }
         } catch (java.lang.Exception e) {
-          addPart(traceValue, "cast-error", new StringType(e.getMessage()));
+          ParamUtils.add(traceValue, "cast-error", new StringType(e.getMessage()));
           // ParametersUtil.addParameterToParameters(ctx, resultPart,
           // nextOutput.fhirType());
         }
