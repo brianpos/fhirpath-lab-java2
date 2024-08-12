@@ -184,6 +184,9 @@
         {
             "name": "terminologyserver",
             "valueString": "https://sqlonfhir-r4.azurewebsites.net/fhir"
+        },
+        {
+            "name": "result"
         }
     ]
 }
