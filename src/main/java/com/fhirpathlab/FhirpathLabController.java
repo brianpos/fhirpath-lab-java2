@@ -9,21 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
 
-import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4b.model.Patient;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/fhir")
 public class FhirpathLabController {
     @GetMapping("/hello")
     public String hello() {
         var patient = new Patient();
         patient.setId("pat1");
-        var jsonParser = new org.hl7.fhir.r4.formats.JsonParser();
-        try{
+        var jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
+        try {
             var json = jsonParser.composeString(patient);
             return "Hello, FHIRPath Lab!" + json;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
     }
@@ -34,24 +33,24 @@ public class FhirpathLabController {
      * This method parses the incoming content based on its type (JSON or XML),
      * converts it to a FHIR Patient object, and performs necessary operations.
      *
-     * @param content The string content of the FHIR Patient resource.
+     * @param content     The string content of the FHIR Patient resource.
      * @param contentType The MIME type of the content.
      * @return A confirmation message with the patient ID or an error message.
      * @throws Exception if the content cannot be parsed correctly.
      */
-    @PutMapping(value = "/patient", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @PutMapping(value = "/patient", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
     public String putPatient(@RequestBody String content, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType) {
         try {
             // Determine the appropriate parser based on Content-Type header
-            org.hl7.fhir.r4.formats.IParser parser;
+            org.hl7.fhir.r4b.formats.IParser parser;
             if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
-                parser = new org.hl7.fhir.r4.formats.XmlParser();
+                parser = new org.hl7.fhir.r4b.formats.XmlParser();
             } else {
-                parser = new org.hl7.fhir.r4.formats.JsonParser(); // Default to JSON parser
+                parser = new org.hl7.fhir.r4b.formats.JsonParser(); // Default to JSON parser
             }
 
             // Parse the input content into a Patient resource
-            Patient patient = (Patient)parser.parse(content);
+            Patient patient = (Patient) parser.parse(content);
 
             // Perform any operations with the patient object here
             // For demonstration, just return the patient id
@@ -59,5 +58,50 @@ public class FhirpathLabController {
 
         } catch (Exception e) {
             return "Error: " + e.getMessage();
-        }    }
+        }
+    }
+
+
+    /**
+     * Handles PUT requests for FHIR Patient resources.
+     *
+     * This method parses the incoming content based on its type (JSON or XML),
+     * converts it to a FHIR Patient object, and performs necessary operations.
+     *
+     * @param content     The string content of the FHIR Patient resource.
+     * @param contentType The MIME type of the content.
+     * @return A confirmation message with the patient ID or an error message.
+     * @throws Exception if the content cannot be parsed correctly.
+     */
+    @PutMapping(value = "/fhirpath", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+    public String evaluateFhirPath(@RequestBody String content, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType) {
+        try {
+            // Determine the appropriate parser based on Content-Type header
+            org.hl7.fhir.r4b.formats.IParser parser;
+            if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
+                parser = new org.hl7.fhir.r4b.formats.XmlParser();
+                parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
+            } else {
+                parser = new org.hl7.fhir.r4b.formats.JsonParser(); // Default to JSON parser
+                parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
+            }
+
+            // Parse the input content into a Patient resource
+            var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
+            parameters.setId("1");
+
+            org.hl7.fhir.r4b.context.IWorkerContext context = new org.hl7.fhir.r4b.context.SimpleWorkerContext();
+            var engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(context);
+
+            // FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices();
+            // engine.setHostServices(services);
+            var result = engine.evaluate(parameters, "descendants().id");
+
+            // Perform any operations with the patient object here
+            // For demonstration, just return the patient id
+            return parser.composeString(parameters);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 }
