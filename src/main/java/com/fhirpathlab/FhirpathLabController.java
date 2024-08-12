@@ -90,12 +90,16 @@ public class FhirpathLabController {
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
             parameters.setId("1");
 
+            var resultPart = parameters.addParameter();
+            resultPart.setName("result");
+
             org.hl7.fhir.r4b.context.IWorkerContext context = new org.hl7.fhir.r4b.context.SimpleWorkerContext();
             var engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(context);
 
-            // FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices();
-            // engine.setHostServices(services);
-            var result = engine.evaluate(parameters, "descendants().id");
+            FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices();
+            services.traceToParameter = resultPart;
+            engine.setHostServices(services);
+            var result = engine.evaluate(parameters, "descendants().trace('prop').id");
 
             // Perform any operations with the patient object here
             // For demonstration, just return the patient id
