@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "Debug (Launch) - fhirpath-lab-java2",
+        "request": "launch",
+        "mainClass": "com.fhirpathlab.FhirpathLabJava2Application",
+        "projectName": "fhirpath-lab-java2",
+        "args": "",
+        "vmArgs": "",
+        "env": {},
+        "cwd": "${workspaceFolder}",
+        "console": "internalConsole",
+        "stopOnEntry": false,
+        "stepFilters": {
+          "skipClasses": [
+            "java.*",
+            "javax.*",
+            "sun.*",
+            "com.sun.*"
+          ]
+        }
+      }
+    ]
+  }
+  
