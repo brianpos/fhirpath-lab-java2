@@ -49,7 +49,7 @@ public class FhirpathLabTransformController {
     }
 
     /**
-     * Handles PUT requests for FHIR Patient resources.
+     * Handles POST requests for $transfor requests.
      *
      * This method parses the incoming content based on its type (JSON or XML),
      * converts it to a FHIR Patient object, and performs necessary operations.

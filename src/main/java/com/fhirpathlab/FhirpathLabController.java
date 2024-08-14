@@ -1,10 +1,12 @@
 package com.fhirpathlab;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,8 @@ import org.hl7.fhir.r4b.model.Patient;
 
 @RestController
 @RequestMapping("/fhir")
+@CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT }) // Replace with your
+                                                                                                    // client origin
 public class FhirpathLabController {
 
     private final FhirpathLabSimpleWorkerContextR4B context;
@@ -46,7 +50,8 @@ public class FhirpathLabController {
      * @return A confirmation message with the patient ID or an error message.
      * @throws Exception if the content cannot be parsed correctly.
      */
-    @PutMapping(value = "/fhirpath", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+    @PostMapping(value = "/$fhirpath", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE,
+        "application/fhir+json;fhirVersion=4.0" })
     public String evaluateFhirPath(@RequestBody String content, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType) {
         try {
             // Determine the appropriate parser based on Content-Type header
