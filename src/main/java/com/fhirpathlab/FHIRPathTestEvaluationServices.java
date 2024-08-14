@@ -12,7 +12,6 @@ import org.hl7.fhir.r4b.model.DataType;
 import org.hl7.fhir.r4b.model.Enumeration;
 import org.hl7.fhir.r4b.model.Extension;
 import org.hl7.fhir.r4b.model.Parameters;
-import org.hl7.fhir.r4b.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4b.model.StringType;
 import org.hl7.fhir.r4b.model.ValueSet;
 
