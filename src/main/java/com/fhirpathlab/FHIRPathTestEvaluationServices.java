@@ -23,13 +23,16 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
   private Parameters.ParametersParameterComponent traceToParameter;
   private java.util.HashMap<String, org.hl7.fhir.r4b.model.Base> mapVariables;
 
-  public FHIRPathTestEvaluationServices(Parameters.ParametersParameterComponent theTraceToParameter) {
+  public void setTraceToParameter(Parameters.ParametersParameterComponent theTraceToParameter) {
     traceToParameter = theTraceToParameter;
-    mapVariables = new HashMap<>();
   }
 
   public FHIRPathTestEvaluationServices() {
     mapVariables = new HashMap<>();
+  }
+
+  public void addVariable(String name, org.hl7.fhir.r4b.model.Base value) {
+    mapVariables.put(name, value);
   }
 
   public java.util.Map<String, org.hl7.fhir.r4b.model.Base> getVariables() {
