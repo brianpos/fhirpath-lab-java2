@@ -36,20 +36,20 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/fhir")
 @CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT }) // Replace with your
                                                                                                     // client origin
-public class FhirpathLabTransformController {
+public class FmlTransformController {
 
     private final FhirpathLabSimpleWorkerContextR5 context;
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
     private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
-    public FhirpathLabTransformController(FhirpathLabSimpleWorkerContextR5 context) {
+    public FmlTransformController(FhirpathLabSimpleWorkerContextR5 context) {
         this.context = context;
         xmlParser = new org.hl7.fhir.r4b.formats.XmlParser();
         jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
     }
 
     /**
-     * Handles POST requests for $transfor requests.
+     * Handles POST requests for $transform requests.
      *
      * This method parses the incoming content based on its type (JSON or XML),
      * converts it to a FHIR Patient object, and performs necessary operations.

@@ -19,7 +19,7 @@ import java.io.File;
 import com.google.common.io.Files;
 import java.nio.charset.Charset;
 
-@WebMvcTest(FhirpathLabTransformController.class)
+@WebMvcTest(FmlTransformController.class)
 @Import(MapperControllerTest.TestConfig.class)
 class MapperControllerTest {
 
