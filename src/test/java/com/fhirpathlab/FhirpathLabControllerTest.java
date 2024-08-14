@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 
 import org.hl7.fhir.exceptions.FHIRException;
 
-@WebMvcTest(FhirpathLabController.class)
+@WebMvcTest(FhirpathTestController.class)
 @Import(FhirpathLabControllerTest.TestConfig.class)
 class FhirpathLabControllerTest {
 

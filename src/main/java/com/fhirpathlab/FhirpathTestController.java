@@ -1,7 +1,6 @@
 package com.fhirpathlab;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -11,17 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
 
-import org.hl7.fhir.r4b.model.Patient;
-
 @RestController
 @RequestMapping("/fhir")
 @CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT }) // Replace with your
                                                                                                     // client origin
-public class FhirpathLabController {
+public class FhirpathTestController {
 
     private final FhirpathLabSimpleWorkerContextR4B context;
 
-    public FhirpathLabController(FhirpathLabSimpleWorkerContextR4B context)
+    public FhirpathTestController(FhirpathLabSimpleWorkerContextR4B context)
     {
         this.context = context;
     }
