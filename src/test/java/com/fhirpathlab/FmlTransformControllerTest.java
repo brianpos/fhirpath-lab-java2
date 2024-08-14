@@ -20,8 +20,8 @@ import com.google.common.io.Files;
 import java.nio.charset.Charset;
 
 @WebMvcTest(FmlTransformController.class)
-@Import(MapperControllerTest.TestConfig.class)
-class MapperControllerTest {
+@Import(FmlTransformControllerTest.TestConfig.class)
+class FmlTransformControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
