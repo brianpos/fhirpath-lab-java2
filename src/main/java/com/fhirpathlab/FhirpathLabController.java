@@ -26,19 +26,6 @@ public class FhirpathLabController {
         this.context = context;
     }
 
-    @GetMapping("/hello")
-    public String hello() {
-        var patient = new Patient();
-        patient.setId("pat1");
-        var jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
-        try {
-            var json = jsonParser.composeString(patient);
-            return "Hello, FHIRPath Lab!" + json;
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
-        }
-    }
-
     /**
      * Handles PUT requests for FHIR Patient resources.
      *
