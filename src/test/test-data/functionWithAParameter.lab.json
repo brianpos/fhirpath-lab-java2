@@ -1,0 +1,38 @@
+{
+  "ExpressionType": "ChildExpression",
+  "Name": "given",
+  "Arguments": [
+    {
+      "ExpressionType": "FunctionCallExpression",
+      "Name": "select",
+      "Arguments": [
+        {
+          "ExpressionType": "AxisExpression",
+          "Name": "builtin.that",
+          "ReturnType": " "
+        },
+        {
+          "ExpressionType": "FunctionCallExpression",
+          "Name": "first",
+          "Arguments": [
+            {
+              "ExpressionType": "ChildExpression",
+              "Name": "name",
+              "Arguments": [
+                {
+                  "ExpressionType": "AxisExpression",
+                  "Name": "builtin.that",
+                  "ReturnType": " "
+                }
+              ],
+              "ReturnType": " "
+            }
+          ],
+          "ReturnType": " "
+        }
+      ],
+      "ReturnType": " "
+    }
+  ],
+  "ReturnType": " "
+}

@@ -1,0 +1,20 @@
+{
+  "Kind": "Constant",
+  "Constant": "a",
+  "Operation": "+",
+  "IsProximal": true,
+  "OpNext": {
+    "Kind": "Constant",
+    "Constant": "b",
+    "Operation": "&",
+    "IsProximal": false,
+    "OpNext": {
+      "Kind": "Constant",
+      "Constant": "c",
+      "IsProximal": false,
+      "Types": "string"
+    },
+    "Types": "string"
+  },
+  "Types": "string"
+}

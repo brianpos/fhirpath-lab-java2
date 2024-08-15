@@ -1,0 +1,33 @@
+{
+  "ExpressionType": "FunctionCallExpression",
+  "Name": "first",
+  "Arguments": [
+    {
+      "ExpressionType": "ChildExpression",
+      "Name": "given",
+      "Arguments": [
+        {
+          "ExpressionType": "ChildExpression",
+          "Name": "name",
+          "Arguments": [
+            {
+              "ExpressionType": "ChildExpression",
+              "Name": "Patient",
+              "Arguments": [
+                {
+                  "ExpressionType": "AxisExpression",
+                  "Name": "builtin.that",
+                  "ReturnType": " "
+                }
+              ],
+              "ReturnType": " "
+            }
+          ],
+          "ReturnType": " "
+        }
+      ],
+      "ReturnType": " "
+    }
+  ],
+  "ReturnType": " "
+}

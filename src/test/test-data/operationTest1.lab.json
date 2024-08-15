@@ -1,0 +1,41 @@
+{
+  "ExpressionType": "BinaryExpression",
+  "Name": "+",
+  "Arguments": [
+    {
+      "ExpressionType": "BinaryExpression",
+      "Name": "&",
+      "Arguments": [
+        {
+          "ExpressionType": "BinaryExpression",
+          "Name": "+",
+          "Arguments": [
+            {
+              "ExpressionType": "ConstantExpression",
+              "Name": "a",
+              "ReturnType": "string"
+            },
+            {
+              "ExpressionType": "ConstantExpression",
+              "Name": "b",
+              "ReturnType": "string"
+            }
+          ],
+          "ReturnType": " "
+        },
+        {
+          "ExpressionType": "ConstantExpression",
+          "Name": "c",
+          "ReturnType": "string"
+        }
+      ],
+      "ReturnType": " "
+    },
+    {
+      "ExpressionType": "ConstantExpression",
+      "Name": "d",
+      "ReturnType": "string"
+    }
+  ],
+  "ReturnType": " "
+}

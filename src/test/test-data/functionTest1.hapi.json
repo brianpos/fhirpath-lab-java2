@@ -1,0 +1,56 @@
+{
+  "Kind": "Function",
+  "Function": "trace",
+  "Parameters": [
+    {
+      "Kind": "Constant",
+      "Constant": "trc",
+      "IsProximal": true,
+      "Types": "string"
+    }
+  ],
+  "Inner": {
+    "Kind": "Name",
+    "Name": "given",
+    "Inner": {
+      "Kind": "Function",
+      "Function": "join",
+      "Parameters": [
+        {
+          "Kind": "Constant",
+          "Constant": " ",
+          "IsProximal": true,
+          "Types": "string"
+        }
+      ],
+      "Inner": {
+        "Kind": "Function",
+        "Function": "combine",
+        "Parameters": [
+          {
+            "Kind": "Name",
+            "Name": "family",
+            "IsProximal": true
+          }
+        ],
+        "Inner": {
+          "Kind": "Function",
+          "Function": "join",
+          "Parameters": [
+            {
+              "Kind": "Constant",
+              "Constant": ", ",
+              "IsProximal": true,
+              "Types": "string"
+            }
+          ],
+          "IsProximal": false
+        },
+        "IsProximal": false
+      },
+      "IsProximal": false
+    },
+    "IsProximal": false
+  },
+  "IsProximal": true
+}

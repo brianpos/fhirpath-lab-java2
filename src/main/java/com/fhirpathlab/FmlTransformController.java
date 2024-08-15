@@ -68,10 +68,12 @@ public class FmlTransformController {
             @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType) {
         var responseParameters = new org.hl7.fhir.r4b.model.Parameters();
         responseParameters.setId("map");
-        var paramsTrace = ParamUtils.add(responseParameters, "trace");
+        org.hl7.fhir.r4b.model.OperationOutcome outcome;
+        outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
+        ParamUtils.add(responseParameters, "outcome", outcome);
+        var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
         ParamUtils.add(paramsPart, "evaluator", "Java 6.3.20 (r4b)");
-        org.hl7.fhir.r4b.model.OperationOutcome outcome;
 
         // Determine the appropriate parser based on Content-Type header
         org.hl7.fhir.r4b.formats.IParser parser;
@@ -118,6 +120,7 @@ public class FmlTransformController {
             // Parse the map into a structureMap
             List<org.hl7.fhir.r5.model.Base> outputs = new ArrayList<>();
             var transformerServices = new TransformSupportServicesR5(localContext, outputs);
+            var paramsTrace = ParamUtils.add(responseParameters, "trace");
             transformerServices.setTraceToParameter(paramsTrace);
             org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities smu = new org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities(
                     localContext, transformerServices);
@@ -133,11 +136,8 @@ public class FmlTransformController {
             outputParser.compose(target, boas, OutputStyle.PRETTY, null);
             var result = new String(boas.toByteArray());
             boas.close();
-            var resultPart = ParamUtils.add(responseParameters, "result");
             resultPart.setValue(new org.hl7.fhir.r4b.model.StringType(result));
 
-            outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
-            ParamUtils.add(responseParameters, "outcome", outcome);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.INFORMATION)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INFORMATIONAL)
                     .setDiagnostics("Transformation completed successfully");

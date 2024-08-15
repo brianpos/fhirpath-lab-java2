@@ -1,0 +1,23 @@
+{
+  "Kind": "Function",
+  "Function": "select",
+  "Parameters": [
+    {
+      "Kind": "Name",
+      "Name": "name",
+      "Inner": {
+        "Kind": "Function",
+        "Function": "first",
+        "Parameters": [],
+        "IsProximal": false
+      },
+      "IsProximal": true
+    }
+  ],
+  "Inner": {
+    "Kind": "Name",
+    "Name": "given",
+    "IsProximal": false
+  },
+  "IsProximal": true
+}

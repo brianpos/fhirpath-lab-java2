@@ -1,0 +1,13 @@
+{
+  "Kind": "Function",
+  "Function": "select",
+  "Parameters": [
+    {
+      "Kind": "Constant",
+      "Constant": "%a",
+      "IsProximal": true,
+      "Types": "%constant"
+    }
+  ],
+  "IsProximal": true
+}

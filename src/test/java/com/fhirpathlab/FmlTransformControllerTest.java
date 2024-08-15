@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 
 @WebMvcTest(FmlTransformController.class)
 @Import(FmlTransformControllerTest.TestConfig.class)
-class FmlTransformControllerTest {
+class FmlTransformControllerTest extends TestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,27 +36,18 @@ class FmlTransformControllerTest {
         }
     }
 
-    private static String ReadTestFile(String testName, String testSuffix, String format) {
-        try {
-            String workingDir = System.getProperty("user.dir");
-            return Files.asCharSource(new File(
-                    workingDir + "/src/test/data/" + testName + "." + testSuffix + "." + format),
-                    Charset.defaultCharset()).read();
-        } catch (Exception e) {
-            Assert.isTrue(false, e.getMessage());
-            return null;
-        }
-    }
-
     @Test
     void testTransform2() throws Exception {
         String jsonContent = ReadTestFile("transform", "request", "json");
         String expectedResponse = ReadTestFile("transform", "response", "json");
 
-        mockMvc.perform(post("/fhir/$transform")
+        var result = mockMvc.perform(post("/fhir/$transform")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
-                .andExpect(status().isOk())
+                .content(jsonContent));
+
+        WriteTestFile("transform", "response.actual", "json", result.andReturn().getResponse().getContentAsString());
+
+        result.andExpect(status().isOk())
                 .andExpect(content().json(expectedResponse));
     }
 }

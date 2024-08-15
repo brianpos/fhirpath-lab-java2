@@ -1,0 +1,17 @@
+{
+  "ExpressionType": "UnaryExpression",
+  "Name": "-",
+  "Arguments": [
+    {
+      "ExpressionType": "AxisExpression",
+      "Name": "builtin.that",
+      "ReturnType": " "
+    },
+    {
+      "ExpressionType": "ConstantExpression",
+      "Name": "1",
+      "ReturnType": "integer"
+    }
+  ],
+  "ReturnType": " "
+}

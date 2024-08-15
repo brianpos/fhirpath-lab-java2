@@ -1,0 +1,17 @@
+{
+  "ExpressionType": "FunctionCallExpression",
+  "Name": "select",
+  "Arguments": [
+    {
+      "ExpressionType": "AxisExpression",
+      "Name": "builtin.that",
+      "ReturnType": " "
+    },
+    {
+      "ExpressionType": "ConstantExpression",
+      "Name": "%a",
+      "ReturnType": " "
+    }
+  ],
+  "ReturnType": " "
+}

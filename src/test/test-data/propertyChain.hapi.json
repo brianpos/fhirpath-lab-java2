@@ -1,0 +1,15 @@
+{
+  "Kind": "Name",
+  "Name": "Patient",
+  "Inner": {
+    "Kind": "Name",
+    "Name": "name",
+    "Inner": {
+      "Kind": "Name",
+      "Name": "given",
+      "IsProximal": false
+    },
+    "IsProximal": false
+  },
+  "IsProximal": true
+}

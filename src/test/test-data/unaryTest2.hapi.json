@@ -1,0 +1,11 @@
+{
+  "Kind": "Unary",
+  "Operation": "+",
+  "IsProximal": true,
+  "OpNext": {
+    "Kind": "Constant",
+    "Constant": "1",
+    "IsProximal": false,
+    "Types": "integer"
+  }
+}

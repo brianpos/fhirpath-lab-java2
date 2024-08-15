@@ -1,0 +1,67 @@
+{
+  "ExpressionType": "FunctionCallExpression",
+  "Name": "join",
+  "Arguments": [
+    {
+      "ExpressionType": "FunctionCallExpression",
+      "Name": "combine",
+      "Arguments": [
+        {
+          "ExpressionType": "FunctionCallExpression",
+          "Name": "join",
+          "Arguments": [
+            {
+              "ExpressionType": "ChildExpression",
+              "Name": "given",
+              "Arguments": [
+                {
+                  "ExpressionType": "FunctionCallExpression",
+                  "Name": "trace",
+                  "Arguments": [
+                    {
+                      "ExpressionType": "AxisExpression",
+                      "Name": "builtin.that",
+                      "ReturnType": " "
+                    },
+                    {
+                      "ExpressionType": "ConstantExpression",
+                      "Name": "trc",
+                      "ReturnType": "string"
+                    }
+                  ],
+                  "ReturnType": " "
+                }
+              ],
+              "ReturnType": " "
+            },
+            {
+              "ExpressionType": "ConstantExpression",
+              "Name": " ",
+              "ReturnType": "string"
+            }
+          ],
+          "ReturnType": " "
+        },
+        {
+          "ExpressionType": "ChildExpression",
+          "Name": "family",
+          "Arguments": [
+            {
+              "ExpressionType": "AxisExpression",
+              "Name": "builtin.that",
+              "ReturnType": " "
+            }
+          ],
+          "ReturnType": " "
+        }
+      ],
+      "ReturnType": " "
+    },
+    {
+      "ExpressionType": "ConstantExpression",
+      "Name": ", ",
+      "ReturnType": "string"
+    }
+  ],
+  "ReturnType": " "
+}
