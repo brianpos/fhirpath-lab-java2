@@ -115,7 +115,7 @@ public class FmlTransformController {
             // Parse the map into a structureMap
             List<org.hl7.fhir.r5.model.Base> outputs = new ArrayList<>();
             var transformerServices = new TransformSupportServicesR5(localContext, outputs);
-            transformerServices.traceToParameter = paramsTrace;
+            transformerServices.setTraceToParameter(paramsTrace);
             org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities smu = new org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities(
                     localContext, transformerServices);
             smu.setDebug(true);

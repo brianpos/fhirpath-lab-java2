@@ -77,7 +77,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     private String types;
     private String opTypes;
 
-    static public SimplifiedExpressionNode From(org.hl7.fhir.r4b.fhirpath.ExpressionNode node) {
+    public static SimplifiedExpressionNode from(org.hl7.fhir.r4b.fhirpath.ExpressionNode node) {
         if (node == null)
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
@@ -87,7 +87,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
                 || node.getKind() == org.hl7.fhir.r4b.fhirpath.ExpressionNode.Kind.Function
                         && (node.getFunction() == null || node.getFunction().toCode() == null))
             jsonNode.name = node.getName();
-        var constVal = ConvertConstantToString(node.getConstant());
+        var constVal = convertConstantToString(node.getConstant());
         if (constVal != null) {
             jsonNode.constant = constVal.value;
             jsonNode.types = constVal.type;
@@ -97,18 +97,18 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
 
         var sp = node.getParameters();
         if (sp != null) {
-            jsonNode.parameters = new ArrayList<SimplifiedExpressionNode>();
+            jsonNode.parameters = new ArrayList<>();
             for (org.hl7.fhir.r4b.fhirpath.ExpressionNode arg : node.getParameters()) {
-                jsonNode.parameters.add(From(arg));
+                jsonNode.parameters.add(from(arg));
             }
         }
 
-        jsonNode.inner = From(node.getInner());
-        jsonNode.group = From(node.getGroup());
+        jsonNode.inner = from(node.getInner());
+        jsonNode.group = from(node.getGroup());
         if (node.getOperation() != null)
             jsonNode.operation = node.getOperation().toCode();
         jsonNode.proximal = node.isProximal();
-        jsonNode.opNext = From(node.getOpNext());
+        jsonNode.opNext = from(node.getOpNext());
 
         if (node.getTypes() != null) {
             jsonNode.types = node.getTypes().toString();
@@ -120,7 +120,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         return jsonNode;
     }
 
-    static public SimplifiedExpressionNode From(org.hl7.fhir.r5.fhirpath.ExpressionNode node) {
+    public static SimplifiedExpressionNode from(org.hl7.fhir.r5.fhirpath.ExpressionNode node) {
         if (node == null)
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
@@ -130,7 +130,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
                 || node.getKind() == org.hl7.fhir.r5.fhirpath.ExpressionNode.Kind.Function
                         && (node.getFunction() == null || node.getFunction().toCode() == null))
             jsonNode.name = node.getName();
-        var constVal = ConvertConstantToString(node.getConstant());
+        var constVal = convertConstantToString(node.getConstant());
         if (constVal != null) {
             jsonNode.constant = constVal.value;
             jsonNode.types = constVal.type;
@@ -140,18 +140,18 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
 
         var sp = node.getParameters();
         if (sp != null) {
-            jsonNode.parameters = new ArrayList<SimplifiedExpressionNode>();
+            jsonNode.parameters = new ArrayList<>();
             for (org.hl7.fhir.r5.fhirpath.ExpressionNode arg : node.getParameters()) {
-                jsonNode.parameters.add(From(arg));
+                jsonNode.parameters.add(from(arg));
             }
         }
 
-        jsonNode.inner = From(node.getInner());
-        jsonNode.group = From(node.getGroup());
+        jsonNode.inner = from(node.getInner());
+        jsonNode.group = from(node.getGroup());
         if (node.getOperation() != null)
             jsonNode.operation = node.getOperation().toCode();
         jsonNode.proximal = node.isProximal();
-        jsonNode.opNext = From(node.getOpNext());
+        jsonNode.opNext = from(node.getOpNext());
 
         if (node.getTypes() != null) {
             jsonNode.types = node.getTypes().toString();
@@ -164,7 +164,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     }
 
     static class TypedValue {
-        public static TypedValue Create(String type, String value) {
+        public static TypedValue create(String type, String value) {
             TypedValue tv = new TypedValue();
             tv.type = type;
             tv.value = value;
@@ -175,7 +175,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         public String value;
     }
 
-    static TypedValue ConvertConstantToString(org.hl7.fhir.r4b.model.Base constant) {
+    static TypedValue convertConstantToString(org.hl7.fhir.r4b.model.Base constant) {
         if (constant == null)
             return null;
 
@@ -199,10 +199,10 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         } else {
             b.append(Utilities.escapeJson(constant.toString()));
         }
-        return TypedValue.Create(constant.fhirType(), b.toString());
+        return TypedValue.create(constant.fhirType(), b.toString());
     }
 
-    static TypedValue ConvertConstantToString(org.hl7.fhir.r5.model.Base constant) {
+    static TypedValue convertConstantToString(org.hl7.fhir.r5.model.Base constant) {
         if (constant == null)
             return null;
 
@@ -226,7 +226,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         } else {
             b.append(Utilities.escapeJson(constant.toString()));
         }
-        return TypedValue.Create(constant.fhirType(), b.toString());
+        return TypedValue.create(constant.fhirType(), b.toString());
     }
 
     @JsonProperty("Name")

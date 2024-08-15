@@ -16,7 +16,7 @@ import org.hl7.fhir.r5.elementmodel.Manager;
 
 public class TransformSupportServicesR5 implements ITransformerServices {
 
-    public Parameters.ParametersParameterComponent traceToParameter;
+    private Parameters.ParametersParameterComponent traceToParameter;
     private List<Base> outputs;
     private SimpleWorkerContext context;
 
@@ -25,7 +25,11 @@ public class TransformSupportServicesR5 implements ITransformerServices {
       this.outputs = outputs;
     }
 
-    @Override
+    public void setTraceToParameter(Parameters.ParametersParameterComponent theTraceToParameter) {
+      traceToParameter = theTraceToParameter;
+  }
+
+  @Override
     public Base createType(Object appInfo, String name) throws FHIRException {
       StructureDefinition sd = context.fetchResource(StructureDefinition.class, name);
       return Manager.build(context, sd);

@@ -18,16 +18,20 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4b.elementmodel.Manager;
 import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
+import org.hl7.fhir.r4b.elementmodel.Manager.FhirFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -37,9 +41,13 @@ import java.util.List;
 public class FhirpathTestController {
 
     private final FhirpathLabSimpleWorkerContextR4B context;
+    private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
+    private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
     public FhirpathTestController(FhirpathLabSimpleWorkerContextR4B context) {
         this.context = context;
+        xmlParser = new org.hl7.fhir.r4b.formats.XmlParser();
+        jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
     }
 
     /**
@@ -65,17 +73,21 @@ public class FhirpathTestController {
         try {
             // Determine the appropriate parser based on Content-Type header
             if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
-                parser = new org.hl7.fhir.r4b.formats.XmlParser();
+                parser = xmlParser;
                 parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
             } else {
-                parser = new org.hl7.fhir.r4b.formats.JsonParser(); // Default to JSON parser
+                parser = jsonParser; // Default to JSON parser
                 parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
             }
 
             // Parse the input content into a Patient resource
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
-            String contextExpression = parameters.getParameterValue("context").primitiveValue();
-            String expression = parameters.getParameterValue("expression").primitiveValue();
+            String contextExpression = null;
+            if (parameters.getParameterValue("context") != null)
+                contextExpression = parameters.getParameterValue("context").primitiveValue();
+            String expression = null;
+            if (parameters.getParameterValue("expression") != null)
+                expression = parameters.getParameterValue("expression").primitiveValue();
             Parameters.ParametersParameterComponent variables = parameters.getParameter("variables");
 
             if (isNotBlank(expression)) {
@@ -88,9 +100,17 @@ public class FhirpathTestController {
                 if (parameters.getParameter("resource") != null)
                     resource = parameters.getParameter("resource").getResource();
 
+                String resourceText = null;
+                if (resource != null) {
+                    resourceText = jsonParser.composeString(resource);
+                }
+                InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
+                org.hl7.fhir.r4b.elementmodel.Element sourceResource = null;
+                sourceResource = Manager.parseSingle((context), inputStream, FhirFormat.JSON);
+
                 var engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(context);
 
-                FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices();
+                FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices(context);
                 engine.setHostServices(services);
 
                 // pass through all the variables
@@ -117,7 +137,7 @@ public class FhirpathTestController {
                 try {
                     org.hl7.fhir.r4b.fhirpath.ExpressionNode parseTree;
                     parseTree = engine.parse(expression);
-                    SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.From(parseTree);
+                    SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.from(parseTree);
                     JsonNode nodeParse = AstMapper.From(simplifiedAST);
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -138,15 +158,17 @@ public class FhirpathTestController {
                 List<Base> contextOutputs;
                 if (contextExpression != null) {
                     try {
-                        contextOutputs = engine.evaluate(resource, contextExpression);
+                        contextOutputs = engine.evaluate(sourceResource, contextExpression);
                     } catch (FhirPathExecutionException e) {
                         throw new InvalidRequestException(
                                 Msg.code(327) + "Error parsing FHIRPath expression: " + e.getMessage());
                     }
                 } else {
                     contextOutputs = new java.util.ArrayList<>();
-                    contextOutputs.add(resource);
+                    contextOutputs.add(sourceResource);
                 }
+
+                var oc = new org.hl7.fhir.r4b.elementmodel.ObjectConverter(context);
 
                 for (int i = 0; i < contextOutputs.size(); i++) {
                     org.hl7.fhir.r4b.model.Base node = contextOutputs.get(i);
@@ -164,29 +186,19 @@ public class FhirpathTestController {
                     }
 
                     for (Base nextOutput : outputs) {
-                        if (nextOutput instanceof IBaseResource) {
-                            ParamUtils.add(resultPart, nextOutput.fhirType())
-                                    .setResource((org.hl7.fhir.r4b.model.Resource) nextOutput);
-                        } else if (nextOutput instanceof org.hl7.fhir.r4b.model.BackboneElement) {
-                            Parameters.ParametersParameterComponent backboneValue = resultPart.addPart();
-                            backboneValue.setName(nextOutput.fhirType());
-                            // String backboneJson = parser.encodeToString(nextOutput);
-                            // backboneValue.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                            //         new StringType(backboneJson));
-                        } else {
-                            try {
-                                if (nextOutput instanceof StringType) {
-                                    StringType st = (StringType) nextOutput;
-                                    if (st.getValue() == "")
-                                        ParamUtils.add(resultPart, "empty-string");
-                                    else
-                                        ParamUtils.add(resultPart, nextOutput.fhirType(), st);
-                                } else {
-                                    // ParamUtils.add(resultPart, nextOutput.fhirType(), nextOutput);
-                                }
-                            } catch (java.lang.IllegalArgumentException e) {
-                                // ParametersUtil.addParameterToParameters(ctx, resultPart,
-                                // nextOutput.fhirType());
+                        if (nextOutput instanceof org.hl7.fhir.r4b.elementmodel.Element) {
+                            var em = (org.hl7.fhir.r4b.elementmodel.Element) nextOutput;
+                            ParamUtils.addTypedElement(context, oc, resultPart, em);
+                        } else if (nextOutput instanceof org.hl7.fhir.r4b.model.DataType) {
+                            var dt = (org.hl7.fhir.r4b.model.DataType) nextOutput;
+                            if (dt instanceof StringType) {
+                                StringType st = (StringType) dt;
+                                if (st.getValue().equalsIgnoreCase(""))
+                                    ParamUtils.add(resultPart, "empty-string");
+                                else
+                                    ParamUtils.add(resultPart, dt.fhirType(), st);
+                            } else {
+                                ParamUtils.add(resultPart, dt.fhirType(), dt);
                             }
                         }
                     }
