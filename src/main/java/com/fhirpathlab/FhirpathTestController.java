@@ -18,7 +18,6 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
@@ -126,11 +125,9 @@ public class FhirpathTestController {
                     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
                     String jsonAstTree = objectMapper.writeValueAsString(nodeParse);
-                    // System.out.println(jsonAstTree);
                     ParamUtils.add(paramsPart, "parseDebugTree", jsonAstTree);
 
                     String jsonAstTree2 = objectMapper.writeValueAsString(simplifiedAST);
-                    // System.out.println(jsonAstTree2);
                     ParamUtils.add(paramsPart, "parseDebugTreeJava", jsonAstTree2);
 
                 } catch (IOException ex) {
@@ -166,7 +163,7 @@ public class FhirpathTestController {
                                 Msg.code(327) + "Error parsing FHIRPath expression: " + e.getMessage());
                     }
 
-                    for (IBase nextOutput : outputs) {
+                    for (Base nextOutput : outputs) {
                         if (nextOutput instanceof IBaseResource) {
                             ParamUtils.add(resultPart, nextOutput.fhirType())
                                     .setResource((org.hl7.fhir.r4b.model.Resource) nextOutput);
