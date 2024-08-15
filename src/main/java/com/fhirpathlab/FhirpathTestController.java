@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fhirpathlab.utils.AstMapper;
+import com.fhirpathlab.utils.JsonNode;
+import com.fhirpathlab.utils.ParamUtils;
+import com.fhirpathlab.utils.SimplifiedExpressionNode;
 
 import ca.uhn.fhir.fhirpath.FhirPathExecutionException;
 import ca.uhn.fhir.i18n.Msg;

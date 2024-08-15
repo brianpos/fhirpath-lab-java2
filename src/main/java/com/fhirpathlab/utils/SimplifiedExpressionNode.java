@@ -1,4 +1,4 @@
-package com.fhirpathlab;
+package com.fhirpathlab.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
