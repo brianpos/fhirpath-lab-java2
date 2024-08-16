@@ -14,17 +14,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.r5.model.StructureMap;
+import org.hl7.fhir.utilities.Utilities;
+import org.hl7.fhir.utilities.i18n.I18nConstants;
+import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.hl7.fhir.r4b.model.Bundle;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
 import org.hl7.fhir.r5.elementmodel.Manager;
+import org.hl7.fhir.r5.elementmodel.ValidatedFragment;
 import org.hl7.fhir.r5.elementmodel.Manager.FhirFormat;
 import org.hl7.fhir.r5.formats.IParser.OutputStyle;
 
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_43_50;
+import org.hl7.fhir.exceptions.DefinitionException;
 import org.hl7.fhir.exceptions.FHIRException;
+import org.hl7.fhir.exceptions.FHIRFormatError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +87,7 @@ public class FmlTransformController {
         logger.info("Evaluating: fhir/$transform");
 
         // Determine the appropriate parser based on Content-Type header
+        boolean inputFormatIsJson = false;
         org.hl7.fhir.r4b.formats.IParser parser;
         if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
             parser = xmlParser;
@@ -88,6 +95,7 @@ public class FmlTransformController {
         } else {
             parser = jsonParser; // Default to JSON parser
             parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
+            inputFormatIsJson = true;
         }
 
         try {
@@ -110,16 +118,9 @@ public class FmlTransformController {
                     resourceText = pv.primitiveValue().trim();
                 }
             }
-            var context = contextFactory.getContextR5();
-            if (resourceText.startsWith("{")) {
-                InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
-                sourceResource = Manager.parseSingle((context), inputStream, FhirFormat.JSON);
-            } else {
-                InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
-                sourceResource = Manager.parseSingle((context), inputStream, FhirFormat.XML);
-            }
 
             // Create a new context for the call
+            var context = contextFactory.getContextR5();
             var localContext = new org.hl7.fhir.r5.context.SimpleWorkerContext(context);
             readCustomStructureDefinitions(localContext, parameters);
 
@@ -133,13 +134,48 @@ public class FmlTransformController {
             smu.setDebug(true);
             var map = smu.parse(fml, contentType);
 
+            InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
+            try {
+                if (resourceText.startsWith("{")) {
+                    sourceResource = Manager.parseSingle(localContext, inputStream, FhirFormat.JSON);
+                    inputFormatIsJson = true;
+                } else {
+                    sourceResource = Manager.parseSingle(localContext, inputStream, FhirFormat.XML);
+                    inputFormatIsJson = false;
+                }
+            } catch (FHIRFormatError e) {
+                // This isn't a native FHIR resource, so use a generic parser (which may be able
+                // to handle the logical models)
+                List<ValidatedFragment> fragments;
+                if (resourceText.startsWith("{")) {
+                    var rawJsonParser = new org.hl7.fhir.r5.elementmodel.JsonParser(localContext);
+                    fragments = rawJsonParser.parse(inputStream);
+                    inputFormatIsJson = true;
+                } else {
+                    var rawXmlParser = new org.hl7.fhir.r5.elementmodel.XmlParser(localContext);
+                    fragments = rawXmlParser.parse(inputStream);
+                    inputFormatIsJson = false;
+                }
+                if (fragments.size() == 1) {
+                    sourceResource = fragments.get(0).getElement();
+                } else {
+                    throw new FHIRException("Unable to parse resource");
+                }
+            }
+
             // By using the local context here we are possibly permitting a logical model
-            // be used as the target resource, not sure if that really should be permitted...
+            // be used as the target resource, not sure if that really should be
+            // permitted...
             org.hl7.fhir.r5.elementmodel.Element target = getTargetResourceFromStructureMap(localContext, map);
             smu.transform(null, sourceResource, map, target);
 
             // convert the result back into json
-            var outputParser = new org.hl7.fhir.r5.elementmodel.JsonParser(localContext);
+            org.hl7.fhir.r5.elementmodel.ParserBase outputParser;
+            if (inputFormatIsJson) {
+                outputParser = new org.hl7.fhir.r5.elementmodel.JsonParser(localContext);
+            } else {
+                outputParser = new org.hl7.fhir.r5.elementmodel.XmlParser(localContext);
+            }
             ByteArrayOutputStream boas = new ByteArrayOutputStream();
             outputParser.compose(target, boas, OutputStyle.PRETTY, null);
             var result = new String(boas.toByteArray());
@@ -167,7 +203,8 @@ public class FmlTransformController {
         }
     }
 
-    private org.hl7.fhir.r5.elementmodel.Element getTargetResourceFromStructureMap(org.hl7.fhir.r5.context.SimpleWorkerContext context, StructureMap map) {
+    private org.hl7.fhir.r5.elementmodel.Element getTargetResourceFromStructureMap(
+            org.hl7.fhir.r5.context.SimpleWorkerContext context, StructureMap map) {
         String targetTypeUrl = null;
         for (StructureMap.StructureMapStructureComponent component : map.getStructure()) {
             if (component.getMode() == StructureMap.StructureMapModelMode.TARGET) {
@@ -191,7 +228,7 @@ public class FmlTransformController {
 
     private void readCustomStructureDefinitions(org.hl7.fhir.r5.context.SimpleWorkerContext context,
             Parameters operationParameters) {
-        List<Parameters.ParametersParameterComponent> models = operationParameters.getParameter();
+        List<Parameters.ParametersParameterComponent> models = operationParameters.getParameters("model");
         for (Parameters.ParametersParameterComponent model : models) {
             // VersionConvertorFactory_43_50.
             scanResource(context, model.getResource());
@@ -221,15 +258,30 @@ public class FmlTransformController {
         if (resource instanceof org.hl7.fhir.r4b.model.StructureDefinition) {
             var sd = (org.hl7.fhir.r5.model.StructureDefinition) VersionConvertorFactory_43_50
                     .convertResource(resource);
+
+            if (!sd.hasSnapshot()) {
+                // Generate the snapshot
+                StructureDefinition sdb = context.fetchResource(StructureDefinition.class, sd.getBaseDefinition());
+                if (sdb == null)
+                    throw new DefinitionException(context.formatMessage(I18nConstants.UNABLE_TO_FIND_BASE__FOR_,
+                            sd.getBaseDefinition(), sd.getUrl()));
+                if (sdb.getDerivation() == null) {
+                    sdb.setDerivation(StructureDefinition.TypeDerivationRule.SPECIALIZATION);
+                }
+                List<ValidationMessage> messages = new ArrayList<>();
+                org.hl7.fhir.r5.conformance.profile.ProfileUtilities pu = new org.hl7.fhir.r5.conformance.profile.ProfileUtilities(
+                        context, messages, null);
+                pu.setThrowException(false);
+                pu.generateSnapshot(sd, sdb, (sd.hasWebPath()) ? Utilities.extractBaseUrl(sd.getWebPath()) : null,
+                        sdb.getName(), null);
+            }
             context.cacheResource(sd);
         }
         if (resource instanceof Bundle) {
             Bundle bundle = (Bundle) resource;
             for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-                if (entry.getResource() instanceof org.hl7.fhir.r4b.model.StructureDefinition) {
-                    var sd = (org.hl7.fhir.r5.model.StructureDefinition) VersionConvertorFactory_43_50
-                            .convertResource(entry.getResource());
-                    context.cacheResource(sd);
+                if (entry.getResource() != null) {
+                    scanResource(context, entry.getResource());
                 }
             }
         }
