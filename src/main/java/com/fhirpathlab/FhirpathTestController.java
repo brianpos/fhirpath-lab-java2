@@ -33,6 +33,8 @@ import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.ByteArrayInputStream;
@@ -48,6 +50,7 @@ import java.util.List;
 public class FhirpathTestController {
 
     private final ContextFactory contextFactory;
+    private static final Logger logger = LoggerFactory.getLogger(FhirpathTestController.class);
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
     private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
@@ -75,6 +78,7 @@ public class FhirpathTestController {
         var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
         org.hl7.fhir.r4b.formats.IParser parser = null;
 
+        logger.info("Evaluating: fhir/$fhirpath");
         try {
             // Determine the appropriate parser based on Content-Type header
             if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
@@ -105,20 +109,24 @@ public class FhirpathTestController {
             }
 
             // There is no expression, so we should return that as an issue
+            logger.error("Cannot evaluate without a fhirpath expression");
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INCOMPLETE)
                     .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
 
             return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            logger.error("Error processing $fhirpath", e);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
                     .setDetails(new CodeableConcept().setText("Unknown error evaluating fhirpath expression"))
                     .setDiagnostics(e.getMessage());
         }
         try {
+            logger.error("Unknown Error processing $fhirpath : result in outcome");
             return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
         } catch (Exception ep) {
+            logger.error("Error reporting operationoutcome for $fhirpath result", ep);
             return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -164,7 +172,7 @@ public class FhirpathTestController {
             ParamUtils.add(paramsPart, "parseDebugTreeJava", jsonAstTree2);
 
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            logger.error("Error generating parse tree: ", ex);
         }
     }
 

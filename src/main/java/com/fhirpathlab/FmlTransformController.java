@@ -25,6 +25,8 @@ import org.hl7.fhir.r5.formats.IParser.OutputStyle;
 
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_43_50;
 import org.hl7.fhir.exceptions.FHIRException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 public class FmlTransformController {
 
     private final ContextFactory contextFactory;
+    private static final Logger logger = LoggerFactory.getLogger(FhirpathTestController.class);
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
     private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
@@ -74,6 +77,8 @@ public class FmlTransformController {
         var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
         ParamUtils.add(paramsPart, "evaluator", "Java 6.3.20 (r4b)");
+
+        logger.info("Evaluating: fhir/$transform");
 
         // Determine the appropriate parser based on Content-Type header
         org.hl7.fhir.r4b.formats.IParser parser;
@@ -146,14 +151,17 @@ public class FmlTransformController {
                     .setDiagnostics("Transformation completed successfully");
             return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
         } catch (Exception e) {
+            logger.error("Error processing $transform", e);
             outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
             ParamUtils.add(responseParameters, "outcome", outcome);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
                     .setDiagnostics(e.getMessage());
             try {
+                logger.error("Unknown Error processing $transform : result in outcome");
                 return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
             } catch (Exception ep) {
+                logger.error("Error reporting operationoutcome for $transform result", ep);
                 return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
