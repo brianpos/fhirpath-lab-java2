@@ -47,12 +47,12 @@ import java.util.List;
                                                                                                     // client origin
 public class FhirpathTestController {
 
-    private final FhirpathLabSimpleWorkerContextR4B context;
+    private final ContextFactory contextFactory;
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
     private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
-    public FhirpathTestController(FhirpathLabSimpleWorkerContextR4B context) {
-        this.context = context;
+    public FhirpathTestController(ContextFactory contextFactory) {
+        this.contextFactory = contextFactory;
         xmlParser = new org.hl7.fhir.r4b.formats.XmlParser();
         jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
     }
@@ -126,7 +126,7 @@ public class FhirpathTestController {
     private void processVariables(Parameters.ParametersParameterComponent variables,
             ParametersParameterComponent paramsPart,
             FHIRPathTestEvaluationServices services) {
-        if (variables != null && variables.getPart() != null && variables.getPart().size() > 0) {
+        if (variables != null && variables.getPart() != null && !variables.getPart().isEmpty()) {
             paramsPart.addPart(variables);
             var variableParts = variables.getPart();
             for (int i = 0; i < variableParts.size(); i++) {
@@ -200,6 +200,7 @@ public class FhirpathTestController {
         }
         InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
         org.hl7.fhir.r4b.elementmodel.Element sourceResource = null;
+        var context = contextFactory.getContextR4b();
         sourceResource = Manager.parseSingle((context), inputStream, FhirFormat.JSON);
 
         var engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(context);
@@ -216,11 +217,11 @@ public class FhirpathTestController {
         // locate all of the context objects
         List<Base> contextOutputs = evaluateContexts(contextExpression, sourceResource, engine);
 
-        processEvaluationResults(responseParameters, contextExpression, expression, engine, services, contextOutputs);
+        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services, contextOutputs);
         return responseParameters;
     }
 
-    private void processEvaluationResults(Parameters responseParameters, String contextExpression, String expression,
+    private void processEvaluationResults(org.hl7.fhir.r4b.context.IWorkerContext context, Parameters responseParameters, String contextExpression, String expression,
             FHIRPathEngine engine, FHIRPathTestEvaluationServices services, List<Base> contextOutputs) {
         var oc = new org.hl7.fhir.r4b.elementmodel.ObjectConverter(context);
 

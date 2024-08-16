@@ -41,12 +41,12 @@ import java.nio.charset.StandardCharsets;
                                                                                                     // client origin
 public class FmlTransformController {
 
-    private final FhirpathLabSimpleWorkerContextR5 context;
+    private final ContextFactory contextFactory;
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
     private org.hl7.fhir.r4b.formats.JsonParser jsonParser;
 
-    public FmlTransformController(FhirpathLabSimpleWorkerContextR5 context) {
-        this.context = context;
+    public FmlTransformController(ContextFactory contextFactory) {
+        this.contextFactory = contextFactory;
         xmlParser = new org.hl7.fhir.r4b.formats.XmlParser();
         jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
     }
@@ -105,6 +105,7 @@ public class FmlTransformController {
                     resourceText = pv.primitiveValue().trim();
                 }
             }
+            var context = contextFactory.getContextR5();
             if (resourceText.startsWith("{")) {
                 InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
                 sourceResource = Manager.parseSingle((context), inputStream, FhirFormat.JSON);
@@ -127,7 +128,9 @@ public class FmlTransformController {
             smu.setDebug(true);
             var map = smu.parse(fml, contentType);
 
-            org.hl7.fhir.r5.elementmodel.Element target = getTargetResourceFromStructureMap(map);
+            // By using the local context here we are possibly permitting a logical model
+            // be used as the target resource, not sure if that really should be permitted...
+            org.hl7.fhir.r5.elementmodel.Element target = getTargetResourceFromStructureMap(localContext, map);
             smu.transform(null, sourceResource, map, target);
 
             // convert the result back into json
@@ -156,7 +159,7 @@ public class FmlTransformController {
         }
     }
 
-    private org.hl7.fhir.r5.elementmodel.Element getTargetResourceFromStructureMap(StructureMap map) {
+    private org.hl7.fhir.r5.elementmodel.Element getTargetResourceFromStructureMap(org.hl7.fhir.r5.context.SimpleWorkerContext context, StructureMap map) {
         String targetTypeUrl = null;
         for (StructureMap.StructureMapStructureComponent component : map.getStructure()) {
             if (component.getMode() == StructureMap.StructureMapModelMode.TARGET) {

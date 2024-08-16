@@ -12,9 +12,9 @@ import com.fhirpathlab.utils.AstMapper;
 import com.fhirpathlab.utils.JsonNode;
 import com.fhirpathlab.utils.SimplifiedExpressionNode;
 import com.google.common.io.Files;
+
 import java.nio.charset.Charset;
 
-import org.hl7.fhir.r4b.context.IWorkerContext;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.Patient;
 
@@ -25,8 +25,8 @@ import java.io.IOException;
 
 class AstMapperTest {
     AstMapperTest() throws IOException {
-        workerContext = new FhirpathLabSimpleWorkerContextR4B();
-        engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(workerContext);
+        contextFactory = new ContextFactory();
+        engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(contextFactory.getContextR4b());
 
         objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -35,7 +35,7 @@ class AstMapperTest {
         objectMapper.setDefaultPrettyPrinter(prettyPrinter);
     }
 
-    private IWorkerContext workerContext;
+    private ContextFactory contextFactory;
 
     org.hl7.fhir.r4b.fhirpath.FHIRPathEngine engine;
     ObjectMapper objectMapper;
@@ -169,7 +169,7 @@ class AstMapperTest {
 
     @Test
     void apiCheckJoinExpressionEmpty() throws IOException {
-        var controller = new FhirpathTestController((FhirpathLabSimpleWorkerContextR4B) workerContext);
+        var controller = new FhirpathTestController(contextFactory);
         var patientExample = new Patient();
         patientExample.setId("example");
         patientExample.addName().addGiven("John").addGiven("Doe").setFamily("Smith");

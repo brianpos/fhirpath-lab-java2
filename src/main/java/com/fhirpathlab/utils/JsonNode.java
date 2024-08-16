@@ -32,13 +32,13 @@ public class JsonNode implements IJsonNode {
 
     public void insertArgument(JsonNode node) {
         if (arguments == null)
-            arguments = new ArrayList<JsonNode>();
+            arguments = new ArrayList<>();
         arguments.add(0, node);
     }
 
     public void appendArgument(JsonNode node) {
         if (arguments == null)
-            arguments = new ArrayList<JsonNode>();
+            arguments = new ArrayList<>();
         arguments.add(node);
     }
 
