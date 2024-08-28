@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 28 August 2024
+* Update to org.hl7.fhir v6.3.21 (now that we can just adopt things this quickly)
+
 ### 15 August 2024
 * New implementation! 
 * Now uses the core HL7 FHIRPath engine without the HAPI libraries
