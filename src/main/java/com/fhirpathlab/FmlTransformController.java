@@ -82,7 +82,7 @@ public class FmlTransformController {
         ParamUtils.add(responseParameters, "outcome", outcome);
         var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.3.21 (r4b)");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.3.25 (r4b)");
 
         logger.info("Evaluating: fhir/$transform");
 
@@ -272,7 +272,7 @@ public class FmlTransformController {
                 org.hl7.fhir.r5.conformance.profile.ProfileUtilities pu = new org.hl7.fhir.r5.conformance.profile.ProfileUtilities(
                         context, messages, null);
                 pu.setThrowException(false);
-                pu.generateSnapshot(sd, sdb, (sd.hasWebPath()) ? Utilities.extractBaseUrl(sd.getWebPath()) : null,
+                pu.generateSnapshot(sdb, sd, (sd.hasWebPath()) ? Utilities.extractBaseUrl(sd.getWebPath()) : null,
                         sdb.getName(), null);
             }
             context.cacheResource(sd);
