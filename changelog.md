@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 30 October 2024
+* Update to org.hl7.fhir v6.4.0
+
 ### 16 September 2024
 * Update to org.hl7.fhir v6.3.25 (now that we can just adopt things this quickly)
 * resolve bug with generating snapshots which multiple logical models (my code)
