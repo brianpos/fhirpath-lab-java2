@@ -13,3 +13,13 @@ Build it with
 ```
 $ mvn clean install
 ```
+
+### Debugging with local changes to the core HAPI libs (when testing changes to the engines)
+Download the HAPI source code and build it with the `install` goal.
+The *secret sauce* here is that the way the project manages its source is that it always sets a `snapshot` version in the POM that means it will have a different number to the publicly released ones.
+Build and install that project using the command:
+```
+mvn clean install `-Dmaven.test.skip=true
+```
+Then update this project's pom.xml file with the version number of the snapshot you just built.
+This should then let everything just work and permit you to debug the changes you are making to the core HAPI libraries!

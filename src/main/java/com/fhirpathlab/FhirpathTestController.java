@@ -117,7 +117,16 @@ public class FhirpathTestController {
                     .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
 
             return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
-        } catch (FHIRLexerException e) {
+        } catch (org.hl7.fhir.exceptions.PathEngineException e) {
+            logger.error("Error processing $fhirpath", e);
+            var location = new java.util.ArrayList<StringType>();
+            if (e.getLocation() != null)
+                location.add(new StringType(e.getLocation().toString()));
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                    .setLocation(location)
+                    .setDetails(new CodeableConcept().setText(e.getMessage()));
+        } catch (org.hl7.fhir.exceptions.FHIRException e) {
             logger.error("Error processing $fhirpath", e);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
