@@ -29,6 +29,8 @@ import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4b.model.StringType;
 import org.hl7.fhir.r4b.elementmodel.Manager.FhirFormat;
+import org.hl7.fhir.r4b.fhirpath.ExpressionNode;
+import org.hl7.fhir.r4b.fhirpath.FHIRLexer.FHIRLexerException;
 import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -115,6 +117,11 @@ public class FhirpathTestController {
                     .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
 
             return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+        } catch (FHIRLexerException e) {
+            logger.error("Error processing $fhirpath", e);
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                    .setDetails(new CodeableConcept().setText(e.getMessage()));
         } catch (Exception e) {
             logger.error("Error processing $fhirpath", e);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
@@ -225,12 +232,12 @@ public class FhirpathTestController {
         // locate all of the context objects
         List<Base> contextOutputs = evaluateContexts(contextExpression, sourceResource, engine);
 
-        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services, contextOutputs);
+        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services, sourceResource, contextOutputs);
         return responseParameters;
     }
 
     private void processEvaluationResults(org.hl7.fhir.r4b.context.IWorkerContext context, Parameters responseParameters, String contextExpression, String expression,
-            FHIRPathEngine engine, FHIRPathTestEvaluationServices services, List<Base> contextOutputs) {
+            FHIRPathEngine engine, FHIRPathTestEvaluationServices services, org.hl7.fhir.r4b.elementmodel.Element sourceResource, List<Base> contextOutputs) {
         var oc = new org.hl7.fhir.r4b.elementmodel.ObjectConverter(context);
 
         for (int i = 0; i < contextOutputs.size(); i++) {
@@ -242,7 +249,8 @@ public class FhirpathTestController {
 
             List<org.hl7.fhir.r4b.model.Base> outputs;
             try {
-                outputs = engine.evaluate(node, expression);
+                ExpressionNode exp = engine.parse(expression);
+                outputs = engine.evaluate(null, sourceResource, sourceResource, node, exp);
             } catch (FhirPathExecutionException e) {
                 throw new InvalidRequestException(
                         Msg.code(327) + "Error parsing FHIRPath expression: " + e.getMessage());

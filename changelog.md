@@ -4,6 +4,7 @@
 
 ### 30 October 2024
 * Update to org.hl7.fhir v6.4.0
+* Correct bug in running the Fhirpath engine where the "resource" context was not being set correctly.
 
 ### 16 September 2024
 * Update to org.hl7.fhir v6.3.25 (now that we can just adopt things this quickly)
