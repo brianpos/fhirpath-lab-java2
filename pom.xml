@@ -9,13 +9,13 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <hapifhir.version>6.4.0</hapifhir.version>
+    <hapifhir.version>6.5.18</hapifhir.version>
   </properties>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.2</version>
+    <version>3.4.4</version>
     <relativePath/>
     <!-- lookup parent from repository -->
   </parent>
@@ -31,7 +31,7 @@
     <dependency>
       <groupId>org.fhir</groupId>
       <artifactId>ucum</artifactId>
-      <version>1.0.8</version>
+      <version>1.0.9</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/org.hl7.fhir.r4 -->
