@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.hl7.fhir.utilities.Utilities;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 interface ISimplifiedExpressionNode extends Serializable {
@@ -57,6 +58,14 @@ interface ISimplifiedExpressionNode extends Serializable {
     String getOpTypes();
 
     void setOpTypes(String types);
+
+    Integer getStartLine();
+
+    void setStartLine(Integer startLine);
+
+    Integer getStartColumn();
+
+    void setStartColumn(Integer startColumn);
 }
 
 public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
@@ -76,6 +85,8 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     private SimplifiedExpressionNode opNext;
     private String types;
     private String opTypes;
+    private Integer startLine;
+    private Integer startColumn;
 
     public static SimplifiedExpressionNode from(org.hl7.fhir.r4b.fhirpath.ExpressionNode node) {
         if (node == null)
@@ -360,5 +371,29 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     @Override
     public void setOpTypes(String opTypes) {
         this.opTypes = opTypes;
+    }
+
+    @JsonProperty("StartLine")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public Integer getStartLine() {
+        return startLine;
+    }
+
+    @Override
+    public void setStartLine(Integer startLine) {
+        this.startLine = startLine;
+    }
+    
+    @JsonProperty("StartColumn")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public Integer getStartColumn() {
+        return startColumn;
+    }
+
+    @Override
+    public void setStartColumn(Integer startColumn) {
+        this.startColumn = startColumn;
     }
 }
