@@ -39,7 +39,8 @@ class FhirpathLabControllerTest extends TestBase {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonContent));
 
-        WriteTestFile("simple", "response.actual", "json", result.andReturn().getResponse().getContentAsString());
+        // Uncomment the following line to write the actual response to a file for debugging
+        // WriteTestFile("simple", "response.actual", "json", result.andReturn().getResponse().getContentAsString());
 
         result.andExpect(status().isOk())
                 .andExpect(content().json(expectedResponse));

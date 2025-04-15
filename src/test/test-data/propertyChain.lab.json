@@ -13,14 +13,14 @@
             {
               "ExpressionType": "AxisExpression",
               "Name": "builtin.that",
-              "ReturnType": " "
+              "ReturnType": "Patient"
             }
           ],
-          "ReturnType": " "
+          "ReturnType": "Patient"
         }
       ],
-      "ReturnType": " "
+      "ReturnType": "HumanName"
     }
   ],
-  "ReturnType": " "
+  "ReturnType": "string"
 }

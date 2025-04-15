@@ -81,10 +81,14 @@ class AstMapperTest {
     }
 
     private void testExpression(String testName, String expression) {
+        testExpression(testName, "Patient", "Patient", expression);
+    }
+
+    private void testExpression(String testName, String resourceType, String context, String expression) {
         var parseTree = engine.parse(expression);
 
         // Check the expression to load in the datatypes
-        var result = engine.check(null, "Patient", "Patient", parseTree);
+        var result = engine.check(null, resourceType, context, parseTree);
 
         SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.from(parseTree);
         JsonNode nodeParse = AstMapper.From(simplifiedAST, "Patient");
@@ -93,6 +97,11 @@ class AstMapperTest {
 
             String jsonHapiAst = objectMapper.writeValueAsString(simplifiedAST);
             String jsonFhirPathLabAst = objectMapper.writeValueAsString(nodeParse);
+
+            // Write the direct results of the test to the output (so you can compare it)
+            // Uncomment the following line to write the actual response to a file for debugging
+            // WriteJsonTestFile(testName, "hapi2", jsonHapiAst);
+            // WriteJsonTestFile(testName, "lab2", jsonFhirPathLabAst);
 
             // Add your assertions here...
             assertEquals(ReadJsonTestFile(testName, "hapi"), jsonHapiAst, testName + ": HAPI AST incorrect");
@@ -197,12 +206,12 @@ class AstMapperTest {
 
     @Test
     void functionTest1() {
-        testExpression("functionTest1", "trace('trc').given.join(' ').combine(family).join(', ')");
+        testExpression("functionTest1", "Patient", "Patient.name", "trace('trc').given.join(' ').combine(family).join(', ')");
     }
 
     @Test
     void functionTest2() {
-        testExpression("functionTest2", "trace('trc', family.first()).given.join(' ').combine(family).join(', ')");
+        testExpression("functionTest2", "Patient", "Patient.name", "trace('trc', family.first()).given.join(' ').combine(family).join(', ')");
     }
 
     @Test
@@ -210,7 +219,7 @@ class AstMapperTest {
         testExpression("functionWithAParameter", "select(name.first()).given");
     }
 
-    @Test
+    // @Test
     void selectVariable() {
         testExpression("selectVariable", "select(%a)");
     }

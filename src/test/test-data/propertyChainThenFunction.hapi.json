@@ -11,11 +11,15 @@
         "Kind": "Function",
         "Function": "first",
         "Parameters": [],
-        "IsProximal": false
+        "IsProximal": false,
+        "Types": "string"
       },
-      "IsProximal": false
+      "IsProximal": false,
+      "Types": "string"
     },
-    "IsProximal": false
+    "IsProximal": false,
+    "Types": "HumanName"
   },
-  "IsProximal": true
+  "IsProximal": true,
+  "Types": "Patient"
 }

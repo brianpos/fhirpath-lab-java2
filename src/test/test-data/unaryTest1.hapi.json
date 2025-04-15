@@ -8,6 +8,6 @@
     "IsProximal": false,
     "Types": "integer"
   },
-  "Types": "decimal[], integer[], quantity[]",
+  "Types": "decimal, integer, quantity",
   "OpTypes": "integer"
 }

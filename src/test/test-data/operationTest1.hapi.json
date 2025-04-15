@@ -23,5 +23,6 @@
     },
     "Types": "string"
   },
-  "Types": "string"
+  "Types": "string",
+  "OpTypes": "string"
 }

@@ -21,7 +21,7 @@
                     {
                       "ExpressionType": "AxisExpression",
                       "Name": "builtin.that",
-                      "ReturnType": " "
+                      "ReturnType": "Patient"
                     },
                     {
                       "ExpressionType": "ConstantExpression",
@@ -29,10 +29,10 @@
                       "ReturnType": "string"
                     }
                   ],
-                  "ReturnType": " "
+                  "ReturnType": "HumanName"
                 }
               ],
-              "ReturnType": " "
+              "ReturnType": "string"
             },
             {
               "ExpressionType": "ConstantExpression",
@@ -40,7 +40,7 @@
               "ReturnType": "string"
             }
           ],
-          "ReturnType": " "
+          "ReturnType": "string"
         },
         {
           "ExpressionType": "ChildExpression",
@@ -49,13 +49,13 @@
             {
               "ExpressionType": "AxisExpression",
               "Name": "builtin.that",
-              "ReturnType": " "
+              "ReturnType": "string"
             }
           ],
-          "ReturnType": " "
+          "ReturnType": "string"
         }
       ],
-      "ReturnType": " "
+      "ReturnType": "string[]"
     },
     {
       "ExpressionType": "ConstantExpression",
@@ -63,5 +63,5 @@
       "ReturnType": "string"
     }
   ],
-  "ReturnType": " "
+  "ReturnType": "string"
 }

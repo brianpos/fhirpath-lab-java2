@@ -5,7 +5,7 @@
     {
       "ExpressionType": "AxisExpression",
       "Name": "builtin.that",
-      "ReturnType": " "
+      "ReturnType": "Patient"
     },
     {
       "ExpressionType": "ConstantExpression",
@@ -13,5 +13,5 @@
       "ReturnType": "integer"
     }
   ],
-  "ReturnType": "decimal[], integer[], quantity[]"
+  "ReturnType": "integer"
 }

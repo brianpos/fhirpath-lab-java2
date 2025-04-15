@@ -7,5 +7,7 @@
     "Constant": "1",
     "IsProximal": false,
     "Types": "integer"
-  }
+  },
+  "Types": "decimal, integer, quantity",
+  "OpTypes": "integer"
 }

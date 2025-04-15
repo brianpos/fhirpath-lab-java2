@@ -30,7 +30,8 @@
           {
             "Kind": "Name",
             "Name": "family",
-            "IsProximal": true
+            "IsProximal": true,
+            "Types": "string"
           }
         ],
         "Inner": {
@@ -44,13 +45,18 @@
               "Types": "string"
             }
           ],
-          "IsProximal": false
+          "IsProximal": false,
+          "Types": "string"
         },
-        "IsProximal": false
+        "IsProximal": false,
+        "Types": "string[]"
       },
-      "IsProximal": false
+      "IsProximal": false,
+      "Types": "string"
     },
-    "IsProximal": false
+    "IsProximal": false,
+    "Types": "string"
   },
-  "IsProximal": true
+  "IsProximal": true,
+  "Types": "HumanName"
 }
