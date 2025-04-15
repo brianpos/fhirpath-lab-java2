@@ -126,7 +126,10 @@ public class AstMapper {
         JsonNode binaryOperationNode = new JsonNode();
         binaryOperationNode.setExpressionType("BinaryExpression");
         binaryOperationNode.setName(leftExprNode.getOperation());
-        binaryOperationNode.setReturnType(leftExprNode.getOpTypes());
+        if (leftExprNode.getOpTypes() != null)
+            binaryOperationNode.setReturnType(leftExprNode.getOpTypes());
+        else
+            binaryOperationNode.setReturnType(leftExprNode.getTypes());
 
         var rightNode = SimpleFrom(rightExprNode, parent);
         binaryOperationNode.appendArgument(leftNode);
