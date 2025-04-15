@@ -14,9 +14,13 @@ import com.fhirpathlab.utils.SimplifiedExpressionNode;
 import com.google.common.io.Files;
 
 import java.nio.charset.Charset;
+import java.util.List;
 
+import org.hl7.fhir.r4b.model.Base;
+import org.hl7.fhir.r4b.model.DateType;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.Patient;
+// import org.hl7.fhir.r4b.fhirpath.TypeDetails;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,6 +31,7 @@ class AstMapperTest {
     AstMapperTest() throws IOException {
         contextFactory = new ContextFactory();
         engine = new org.hl7.fhir.r4b.fhirpath.FHIRPathEngine(contextFactory.getContextR4b());
+        engineR5 = new org.hl7.fhir.r5.fhirpath.FHIRPathEngine(contextFactory.getContextR5());
 
         objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -38,6 +43,8 @@ class AstMapperTest {
     private ContextFactory contextFactory;
 
     org.hl7.fhir.r4b.fhirpath.FHIRPathEngine engine;
+    org.hl7.fhir.r5.fhirpath.FHIRPathEngine engineR5;
+
     ObjectMapper objectMapper;
     DefaultPrettyPrinter prettyPrinter;
 
@@ -75,8 +82,12 @@ class AstMapperTest {
 
     private void testExpression(String testName, String expression) {
         var parseTree = engine.parse(expression);
+
+        // Check the expression to load in the datatypes
+        var result = engine.check(null, "Patient", "Patient", parseTree);
+
         SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.from(parseTree);
-        JsonNode nodeParse = AstMapper.From(simplifiedAST);
+        JsonNode nodeParse = AstMapper.From(simplifiedAST, "Patient");
 
         try {
 
@@ -100,7 +111,7 @@ class AstMapperTest {
     private void learnExpression(String testName, String expression) {
         var parseTree = engine.parse(expression);
         SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.from(parseTree);
-        JsonNode nodeParse = AstMapper.From(simplifiedAST);
+        JsonNode nodeParse = AstMapper.From(simplifiedAST, "Patient");
 
         try {
 
@@ -115,6 +126,43 @@ class AstMapperTest {
             System.out.println(e);
             Assertions.fail(e.getMessage());
         }
+    }
+
+    @Test
+    void testCheckFunctionality() {
+        var parseTree = engineR5.parse("true\r\n" + //
+                "implies (\r\n" + //
+                "    strength.presentation.ofType(Ratio).exists() and\r\n" + //
+                "    strength.presentation.numerator.where(\r\n" + //
+                "        code = '[arb\\'U]' and\r\n" + //
+                "        system = 'http://unitsofmeasure.org'\r\n" + //
+                "    )\r\n" + //
+                ")");
+        org.hl7.fhir.r5.fhirpath.TypeDetails result = engineR5.check(null, "Ingredient", "Ingredient",
+                "Ingredient.substance", parseTree);
+        Assertions.assertEquals(1, result.getTypes().size(),
+                "Unexpected number of types: " + String.join(", ", result.getTypes()));
+        Assertions.assertEquals("http://hl7.org/fhirpath/System.Boolean", String.join(", ", result.getTypes()));
+    }
+
+    @Test
+    void testCheckFunctionality2() {
+        var parseTree = engineR5.parse("true and strength.presentation.numerator.where( code = '[arb\\'U]' )");
+        org.hl7.fhir.r5.fhirpath.TypeDetails result = engineR5.check(null, "Ingredient", "Ingredient",
+                "Ingredient.substance", parseTree);
+        Assertions.assertEquals(1, result.getTypes().size(),
+                "Unexpected number of types: " + String.join(", ", result.getTypes()));
+        Assertions.assertEquals("http://hl7.org/fhirpath/System.Boolean", String.join(", ", result.getTypes()));
+    }
+
+    @Test
+    void testCheckFunctionality3() {
+        var parseTree = engineR5.parse("true and strength.presentation.numerator.where( code = '[arb\\'U]' )");
+        org.hl7.fhir.r5.fhirpath.TypeDetails result = engineR5.check(null, "Ingredient", "Ingredient",
+                "Ingredient.substance", parseTree);
+        Assertions.assertEquals(1, result.getTypes().size(),
+                "Unexpected number of types: " + String.join(", ", result.getTypes()));
+        Assertions.assertEquals("http://hl7.org/fhirpath/System.Boolean", String.join(", ", result.getTypes()));
     }
 
     @Test
@@ -183,5 +231,24 @@ class AstMapperTest {
         Assertions.assertEquals(1, actualResults.getPart().size());
         Assertions.assertEquals("empty-string", actualResults.getPartFirstRep().getName());
         Assertions.assertNull(actualResults.getPartFirstRep().getValue());
+    }
+
+    @Test
+    public void testEvaluate_ToStringOnDateValue() {
+        Patient input = new Patient();
+        var dtv = new DateType("2024");
+        input.setBirthDateElement(dtv);
+        List<Base> results = engine.evaluate(input, "Patient.birthDate.toString()");
+        assertEquals(1, results.size());
+        assertEquals("2024", results.get(0).toString());
+    }
+
+    @Test
+    public void testEvaluate_ToStringOnExtensionOnlyValue() {
+        Patient input = new Patient();
+        var dtv = new DateType();
+        input.setBirthDateElement(dtv);
+        List<Base> results = engine.evaluate(input, "Patient.birthDate.toString()");
+        assertEquals(0, results.size());
     }
 }

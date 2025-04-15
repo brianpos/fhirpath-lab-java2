@@ -7,8 +7,8 @@ import org.hl7.fhir.r4b.fhirpath.ExpressionNode.Kind;
 
 public class AstMapper {
 
-    static public JsonNode From(SimplifiedExpressionNode node) {
-        return From(node, null);
+    static public JsonNode From(SimplifiedExpressionNode node, String contextType) {
+        return From(node, ProximalNode(contextType));
     }
 
     static private JsonNode SimpleFrom(SimplifiedExpressionNode node, JsonNode parent) {
@@ -16,11 +16,19 @@ public class AstMapper {
             JsonNode memberNode = new JsonNode();
             memberNode.setExpressionType("ChildExpression");
             memberNode.setName(node.getName());
-            memberNode.setReturnType(" ");
+            if (node.getTypes() != null && node.getTypes().length() > 0)
+                memberNode.setReturnType(node.getTypes());
+            else
+                memberNode.setReturnType(" ");
             if (parent != null)
                 memberNode.insertArgument(parent);
-            else
+            else{
+                if (node.isProximal()) {
+                    memberNode.insertArgument(ProximalNode(node.getTypes()));
+                }
+                else
                 memberNode.insertArgument(ProximalNode(" "));
+            }
 
             if (node.getInner() != null) {
                 var innerNode = AstMapper.From(node.getInner(), memberNode);
@@ -33,7 +41,10 @@ public class AstMapper {
             JsonNode nodeFunction = new JsonNode();
             nodeFunction.setExpressionType("FunctionCallExpression");
             nodeFunction.setName(node.getFunction());
-            nodeFunction.setReturnType(" ");
+            if (node.getTypes() != null && node.getTypes().length() > 0)
+                nodeFunction.setReturnType(node.getTypes());
+            else
+                nodeFunction.setReturnType(" ");
 
             if (parent != null)
                 nodeFunction.insertArgument(parent);
@@ -42,7 +53,7 @@ public class AstMapper {
 
             if (node.getParameters() != null) {
                 for (SimplifiedExpressionNode arg : node.getParameters()) {
-                    nodeFunction.appendArgument(From(arg));
+                    nodeFunction.appendArgument(From(arg, parent.getReturnType()));
                 }
             }
 
@@ -82,9 +93,12 @@ public class AstMapper {
             JsonNode unaryNode = new JsonNode();
             unaryNode.setExpressionType("UnaryExpression");
             unaryNode.setName(node.getOperation());
-            unaryNode.setReturnType(" ");
+            if (node.getOpTypes() != null && node.getOpTypes().length() > 0)
+                unaryNode.setReturnType(node.getOpTypes());
+            else
+                unaryNode.setReturnType(" ");
             var nextOp = node.getOpNext();
-            unaryNode.insertArgument(ProximalNode(" "));
+            unaryNode.insertArgument(ProximalNode(parent != null ? parent.getReturnType() : " "));
             unaryNode.appendArgument(SimpleFrom(nextOp, unaryNode));
             return unaryNode;
         }
@@ -103,18 +117,18 @@ public class AstMapper {
             return sf;
 
         // only thing left are binary operations
-        return ProcessBinaryOperation(node, nextOp, sf);
+        return ProcessBinaryOperation(node, nextOp, sf, parent);
     }
 
     // the parent parameter is used to indicate that needs to be embedded
     static public JsonNode ProcessBinaryOperation(SimplifiedExpressionNode leftExprNode,
-            SimplifiedExpressionNode rightExprNode, JsonNode leftNode) {
+            SimplifiedExpressionNode rightExprNode, JsonNode leftNode, JsonNode parent) {
         JsonNode binaryOperationNode = new JsonNode();
         binaryOperationNode.setExpressionType("BinaryExpression");
         binaryOperationNode.setName(leftExprNode.getOperation());
-        binaryOperationNode.setReturnType(" ");
+        binaryOperationNode.setReturnType(leftExprNode.getOpTypes());
 
-        var rightNode = SimpleFrom(rightExprNode, null);
+        var rightNode = SimpleFrom(rightExprNode, parent);
         binaryOperationNode.appendArgument(leftNode);
         binaryOperationNode.appendArgument(rightNode);
 
@@ -124,7 +138,7 @@ public class AstMapper {
         if (nextOp == null)
             return binaryOperationNode;
 
-        return ProcessBinaryOperation(rightExprNode, nextOp, binaryOperationNode);
+        return ProcessBinaryOperation(rightExprNode, nextOp, binaryOperationNode, parent);
     }
 
     static private JsonNode ProximalNode(String returnType) {

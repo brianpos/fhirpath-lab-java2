@@ -2,6 +2,12 @@
 
 ## Changelog
 
+### 11 April 2025
+* Update to org.hl7.fhir v6.5.18
+* Include support for checking the datatypes and returning them in the AST output
+* return an operationoutcome in the debug output so that it's displayed even when the expression can be parsed.
+   (e.g. Patient.name.families - can be parsed, just not evaluated)
+
 ### 30 October 2024
 * Update to org.hl7.fhir v6.4.0
 * Correct bug in running the Fhirpath engine where the "resource" context was not being set correctly.

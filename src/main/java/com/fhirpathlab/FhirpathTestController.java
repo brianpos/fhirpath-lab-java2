@@ -47,8 +47,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/fhir")
-@CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT }) // Replace with your
-                                                                                                    // client origin
+@CrossOrigin(origins = "*", // Replace with your client origin
+        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT }, allowedHeaders = { "Content-Type",
+                "Accept", "Origin", "cache-control" }, exposedHeaders = { "Location", "Content-Location" })
 public class FhirpathTestController {
 
     private final ContextFactory contextFactory;
@@ -170,12 +171,36 @@ public class FhirpathTestController {
         }
     }
 
-    private void generateParseTree(String expression, ParametersParameterComponent paramsPart, FHIRPathEngine engine) {
+    private void generateParseTree(String resourceType, String contextExpression, String expression,
+            ParametersParameterComponent paramsPart, FHIRPathEngine engine,
+            org.hl7.fhir.r4b.model.OperationOutcome outcome) {
         try {
             org.hl7.fhir.r4b.fhirpath.ExpressionNode parseTree;
             parseTree = engine.parse(expression);
+
+            // Also check the expression tree so that it decudes any errrors, and marks up
+            // the object with return types
+            try {
+                if (contextExpression == null)
+                    contextExpression = resourceType;
+                if (!contextExpression.startsWith(resourceType))
+                    contextExpression = resourceType + "." + contextExpression;
+
+                engine.check(null, resourceType, contextExpression, parseTree);
+            } catch (FHIRLexerException e) {
+                logger.error("Error parsing expression: ", e);
+            } catch (org.hl7.fhir.exceptions.PathEngineException e) {
+                logger.error("Error processing $fhirpath", e);
+                var location = new java.util.ArrayList<StringType>();
+                if (e.getLocation() != null)
+                    location.add(new StringType(e.getLocation().toString()));
+                outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                        .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                        .setLocation(location)
+                        .setDetails(new CodeableConcept().setText(e.getMessage()));
+            }
             SimplifiedExpressionNode simplifiedAST = SimplifiedExpressionNode.from(parseTree);
-            JsonNode nodeParse = AstMapper.From(simplifiedAST);
+            JsonNode nodeParse = AstMapper.From(simplifiedAST, contextExpression);
 
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -236,17 +261,27 @@ public class FhirpathTestController {
         processVariables(variables, paramsPart, services);
 
         // Parse out the expression tree for the debug output
-        generateParseTree(expression, paramsPart, engine);
+        var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
+        generateParseTree(resource.getResourceType().name(), contextExpression, expression, paramsPart, engine,
+                outcome);
+        if (outcome.hasIssue()) {
+            var oucomePart = paramsPart.addPart();
+            oucomePart.setName("debugOutcome");
+            oucomePart.setResource(outcome);
+        }
 
         // locate all of the context objects
         List<Base> contextOutputs = evaluateContexts(contextExpression, sourceResource, engine);
 
-        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services, sourceResource, contextOutputs);
+        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services,
+                sourceResource, contextOutputs);
         return responseParameters;
     }
 
-    private void processEvaluationResults(org.hl7.fhir.r4b.context.IWorkerContext context, Parameters responseParameters, String contextExpression, String expression,
-            FHIRPathEngine engine, FHIRPathTestEvaluationServices services, org.hl7.fhir.r4b.elementmodel.Element sourceResource, List<Base> contextOutputs) {
+    private void processEvaluationResults(org.hl7.fhir.r4b.context.IWorkerContext context,
+            Parameters responseParameters, String contextExpression, String expression,
+            FHIRPathEngine engine, FHIRPathTestEvaluationServices services,
+            org.hl7.fhir.r4b.elementmodel.Element sourceResource, List<Base> contextOutputs) {
         var oc = new org.hl7.fhir.r4b.elementmodel.ObjectConverter(context);
 
         for (int i = 0; i < contextOutputs.size(); i++) {

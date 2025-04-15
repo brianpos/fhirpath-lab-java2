@@ -122,13 +122,33 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         jsonNode.opNext = from(node.getOpNext());
 
         if (node.getTypes() != null) {
-            jsonNode.types = node.getTypes().toString();
+            jsonNode.types = getTypeNames(node.getTypes());
         }
         if (node.getOpTypes() != null) {
-            jsonNode.opTypes = node.getOpTypes().toString();
+            jsonNode.opTypes = getTypeNames(node.getOpTypes());
         }
 
         return jsonNode;
+    }
+
+    public static String getTypeNames(org.hl7.fhir.r4b.fhirpath.TypeDetails types) {
+        return types.getTypes().stream()
+            .map(type -> {
+                String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/") 
+                    ? type.replace("http://hl7.org/fhir/StructureDefinition/", "") 
+                    : type;
+                    if (typeName.startsWith("http://hl7.org/fhirpath/")) {
+                        typeName = typeName.replace("http://hl7.org/fhirpath/", "");
+                        typeName = typeName.substring(0, 1).toLowerCase() + typeName.substring(1);
+                    }   
+                    if (types.getCollectionStatus() == null || types.getCollectionStatus() == org.hl7.fhir.r4b.fhirpath.ExpressionNode.CollectionStatus.SINGLETON)
+                        return typeName;
+                    return typeName + "[]";
+            })
+            .distinct()
+            .sorted()
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
     }
 
     public static SimplifiedExpressionNode from(org.hl7.fhir.r5.fhirpath.ExpressionNode node) {
@@ -165,13 +185,33 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
         jsonNode.opNext = from(node.getOpNext());
 
         if (node.getTypes() != null) {
-            jsonNode.types = node.getTypes().toString();
+            jsonNode.types = getTypeNames(node.getTypes());
         }
         if (node.getOpTypes() != null) {
-            jsonNode.opTypes = node.getOpTypes().toString();
+            jsonNode.opTypes = getTypeNames(node.getOpTypes());
         }
 
         return jsonNode;
+    }
+
+    public static String getTypeNames(org.hl7.fhir.r5.fhirpath.TypeDetails types) {
+        return types.getTypes().stream()
+            .map(type -> {
+                String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/") 
+                    ? type.replace("http://hl7.org/fhir/StructureDefinition/", "") 
+                    : type;
+                    if (typeName.startsWith("http://hl7.org/fhirpath/")) {
+                        typeName = typeName.replace("http://hl7.org/fhirpath/", "");
+                        typeName = typeName.substring(0, 1).toLowerCase() + typeName.substring(1);
+                    }   
+                if (types.getCollectionStatus() == null || types.getCollectionStatus() == org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus.SINGLETON)
+                    return typeName;
+                return typeName + "[]";
+            })
+            .distinct()
+            .sorted()
+            .reduce((a, b) -> a + ", " + b)
+            .orElse("");
     }
 
     static class TypedValue {

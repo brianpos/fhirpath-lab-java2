@@ -13,5 +13,5 @@
       "ReturnType": "integer"
     }
   ],
-  "ReturnType": " "
+  "ReturnType": "decimal[], integer[], quantity[]"
 }
