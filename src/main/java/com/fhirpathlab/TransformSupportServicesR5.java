@@ -7,6 +7,7 @@ import org.hl7.fhir.r4b.model.StringType;
 
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.SimpleWorkerContext;
+import org.hl7.fhir.r5.conformance.profile.ProfileUtilities;
 import org.hl7.fhir.r5.model.Base;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.StructureDefinition;
@@ -30,7 +31,7 @@ public class TransformSupportServicesR5 implements ITransformerServices {
   }
 
   @Override
-    public Base createType(Object appInfo, String name) throws FHIRException {
+    public Base createType(Object appInfo, String name, ProfileUtilities var3) throws FHIRException {
       StructureDefinition sd = context.fetchResource(StructureDefinition.class, name);
       return Manager.build(context, sd);
     }
