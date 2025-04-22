@@ -66,6 +66,14 @@ interface ISimplifiedExpressionNode extends Serializable {
     Integer getStartColumn();
 
     void setStartColumn(Integer startColumn);
+
+    Integer getStartOpLine();
+
+    void setStartOpLine(Integer startOpLine);
+
+    Integer getStartOpColumn();
+
+    void setStartOpColumn(Integer startOpColumn);
 }
 
 public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
@@ -87,12 +95,21 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     private String opTypes;
     private Integer startLine;
     private Integer startColumn;
+    private Integer startOpLine;
+    private Integer startOpColumn;
 
     public static SimplifiedExpressionNode from(org.hl7.fhir.r4b.fhirpath.ExpressionNode node) {
         if (node == null)
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
         // jsonNode.uniqueId = node.getUniqueId();
+        jsonNode.startLine = node.getStart().getLine();
+        jsonNode.startColumn = node.getStart().getColumn();
+        if (node.getOpStart() != null) {
+            jsonNode.startOpLine = node.getOpStart().getLine();
+            jsonNode.startOpColumn = node.getOpStart().getColumn();
+        }
+
         jsonNode.kind = node.getKind().toString();
         if (node.getKind() == org.hl7.fhir.r4b.fhirpath.ExpressionNode.Kind.Name
                 || node.getKind() == org.hl7.fhir.r4b.fhirpath.ExpressionNode.Kind.Function
@@ -133,29 +150,36 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
 
     public static String getTypeNames(org.hl7.fhir.r4b.fhirpath.TypeDetails types) {
         return types.getTypes().stream()
-            .map(type -> {
-                String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/") 
-                    ? type.replace("http://hl7.org/fhir/StructureDefinition/", "") 
-                    : type;
+                .map(type -> {
+                    String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/")
+                            ? type.replace("http://hl7.org/fhir/StructureDefinition/", "")
+                            : type;
                     if (typeName.startsWith("http://hl7.org/fhirpath/")) {
                         typeName = typeName.replace("http://hl7.org/fhirpath/", "");
                         typeName = typeName.substring(0, 1).toLowerCase() + typeName.substring(1);
-                    }   
+                    }
                     if (types.getCollectionStatus() == null || types.getCollectionStatus() == org.hl7.fhir.r4b.fhirpath.ExpressionNode.CollectionStatus.SINGLETON)
                         return typeName;
                     return typeName + "[]";
-            })
-            .distinct()
-            .sorted()
-            .reduce((a, b) -> a + ", " + b)
-            .orElse("");
+                })
+                .distinct()
+                .sorted()
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
     }
 
     public static SimplifiedExpressionNode from(org.hl7.fhir.r5.fhirpath.ExpressionNode node) {
         if (node == null)
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
-        jsonNode.uniqueId = node.getUniqueId();
+        // jsonNode.uniqueId = node.getUniqueId();
+        jsonNode.startLine = node.getStart().getLine();
+        jsonNode.startColumn = node.getStart().getColumn();
+        if (node.getOpStart() != null) {
+            jsonNode.startOpLine = node.getOpStart().getLine();
+            jsonNode.startOpColumn = node.getOpStart().getColumn();
+        }
+
         jsonNode.kind = node.getKind().toString();
         if (node.getKind() == org.hl7.fhir.r5.fhirpath.ExpressionNode.Kind.Name
                 || node.getKind() == org.hl7.fhir.r5.fhirpath.ExpressionNode.Kind.Function
@@ -196,22 +220,23 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
 
     public static String getTypeNames(org.hl7.fhir.r5.fhirpath.TypeDetails types) {
         return types.getTypes().stream()
-            .map(type -> {
-                String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/") 
-                    ? type.replace("http://hl7.org/fhir/StructureDefinition/", "") 
-                    : type;
+                .map(type -> {
+                    String typeName = type.startsWith("http://hl7.org/fhir/StructureDefinition/")
+                            ? type.replace("http://hl7.org/fhir/StructureDefinition/", "")
+                            : type;
                     if (typeName.startsWith("http://hl7.org/fhirpath/")) {
                         typeName = typeName.replace("http://hl7.org/fhirpath/", "");
                         typeName = typeName.substring(0, 1).toLowerCase() + typeName.substring(1);
-                    }   
-                if (types.getCollectionStatus() == null || types.getCollectionStatus() == org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus.SINGLETON)
-                    return typeName;
-                return typeName + "[]";
-            })
-            .distinct()
-            .sorted()
-            .reduce((a, b) -> a + ", " + b)
-            .orElse("");
+                    }
+                    if (types.getCollectionStatus() == null || types
+                            .getCollectionStatus() == org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus.SINGLETON)
+                        return typeName;
+                    return typeName + "[]";
+                })
+                .distinct()
+                .sorted()
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
     }
 
     static class TypedValue {
@@ -424,7 +449,7 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     public void setStartLine(Integer startLine) {
         this.startLine = startLine;
     }
-    
+
     @JsonProperty("StartColumn")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Override
@@ -435,5 +460,29 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
     @Override
     public void setStartColumn(Integer startColumn) {
         this.startColumn = startColumn;
+    }
+
+    @JsonProperty("StartOpLine")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public Integer getStartOpLine() {
+        return startOpLine;
+    }
+
+    @Override
+    public void setStartOpLine(Integer startOpLine) {
+        this.startOpLine = startOpLine;
+    }
+
+    @JsonProperty("StartOpColumn")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public Integer getStartOpColumn() {
+        return startOpColumn;
+    }
+
+    @Override
+    public void setStartOpColumn(Integer startOpColumn) {
+        this.startOpColumn = startOpColumn;
     }
 }

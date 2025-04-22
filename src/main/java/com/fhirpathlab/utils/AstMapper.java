@@ -15,6 +15,8 @@ public class AstMapper {
         if (node.getKind() == "Name") {
             JsonNode memberNode = new JsonNode();
             memberNode.setExpressionType("ChildExpression");
+            memberNode.setLine(node.getStartLine());
+            memberNode.setColumn(node.getStartColumn());
             memberNode.setName(node.getName());
             if (node.getTypes() != null && node.getTypes().length() > 0)
                 memberNode.setReturnType(node.getTypes());
@@ -40,6 +42,8 @@ public class AstMapper {
         if (node.getKind() == "Function") {
             JsonNode nodeFunction = new JsonNode();
             nodeFunction.setExpressionType("FunctionCallExpression");
+            nodeFunction.setLine(node.getStartLine());
+            nodeFunction.setColumn(node.getStartColumn());
             nodeFunction.setName(node.getFunction());
             if (node.getTypes() != null && node.getTypes().length() > 0)
                 nodeFunction.setReturnType(node.getTypes());
@@ -67,8 +71,10 @@ public class AstMapper {
 
         if (node.getKind() == "Constant") {
             JsonNode nodeConstant = new JsonNode();
-            nodeConstant.setName(node.getConstant());
             nodeConstant.setExpressionType("ConstantExpression");
+            nodeConstant.setLine(node.getStartLine());
+            nodeConstant.setColumn(node.getStartColumn());
+            nodeConstant.setName(node.getConstant());
             if (node.getTypes() != null && node.getTypes().length() > 0 && !node.getTypes().startsWith("%"))
                 nodeConstant.setReturnType(node.getTypes());
             else
@@ -92,6 +98,8 @@ public class AstMapper {
         if (node.getKind() == "Unary") {
             JsonNode unaryNode = new JsonNode();
             unaryNode.setExpressionType("UnaryExpression");
+            unaryNode.setLine(node.getStartLine());
+            unaryNode.setColumn(node.getStartColumn());
             unaryNode.setName(node.getOperation());
             if (node.getOpTypes() != null && node.getOpTypes().length() > 0)
                 unaryNode.setReturnType(node.getOpTypes());
@@ -125,6 +133,8 @@ public class AstMapper {
             SimplifiedExpressionNode rightExprNode, JsonNode leftNode, JsonNode parent) {
         JsonNode binaryOperationNode = new JsonNode();
         binaryOperationNode.setExpressionType("BinaryExpression");
+        binaryOperationNode.setLine(leftExprNode.getStartOpLine());
+        binaryOperationNode.setColumn(leftExprNode.getStartOpColumn());
         binaryOperationNode.setName(leftExprNode.getOperation());
         if (leftExprNode.getOpTypes() != null)
             binaryOperationNode.setReturnType(leftExprNode.getOpTypes());

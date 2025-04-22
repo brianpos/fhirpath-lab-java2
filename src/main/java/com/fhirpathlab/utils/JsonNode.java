@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 interface IJsonNode extends Serializable {
@@ -22,6 +23,22 @@ interface IJsonNode extends Serializable {
     String getReturnType();
 
     void setReturnType(String returnType);
+
+    Integer getPosition();
+
+    void setPosition(Integer position);
+
+    Integer getLength();
+
+    void setLength(Integer length);
+
+    Integer getLine();
+
+    void setLine(Integer line);
+
+    Integer getColumn();
+
+    void setColumn(Integer column);
 }
 
 public class JsonNode implements IJsonNode {
@@ -29,6 +46,10 @@ public class JsonNode implements IJsonNode {
     private String name;
     private List<JsonNode> arguments;
     private String returnType;
+    private Integer position;
+    private Integer length;
+    private Integer line;
+    private Integer column;
 
     public void insertArgument(JsonNode node) {
         if (arguments == null)
@@ -87,5 +108,53 @@ public class JsonNode implements IJsonNode {
             this.returnType = " ";
         else
             this.returnType = returnType;
+    }
+
+    @Override
+    public Integer getPosition() {
+        return position;
+    }
+
+    @JsonProperty("Position")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public void setPosition(Integer position) {
+        this.position = position;
+    }
+
+    @Override
+    public Integer getLength() {
+        return length;
+    }
+
+    @JsonProperty("Length")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public void setLength(Integer length) {
+        this.length = length;
+    }
+
+    @Override
+    public Integer getLine() {
+        return line;
+    }
+
+    @JsonProperty("Line")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public void setLine(Integer line) {
+        this.line = line;
+    }
+
+    @Override
+    public Integer getColumn() {
+        return column;
+    }
+
+    @JsonProperty("Column")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Override
+    public void setColumn(Integer column) {
+        this.column = column;
     }
 }

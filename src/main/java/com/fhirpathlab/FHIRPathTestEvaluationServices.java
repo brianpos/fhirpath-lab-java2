@@ -7,6 +7,7 @@ import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine.IEvaluationContext;
 import org.hl7.fhir.r4b.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r4b.fhirpath.TypeDetails;
+import org.hl7.fhir.r4b.fhirpath.ExpressionNode.CollectionStatus;
 import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
@@ -96,7 +97,15 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
     @Override
     public TypeDetails resolveConstantType(FHIRPathEngine engine, Object appContext, String name,
             boolean explicitConstant) throws PathEngineException {
-        throw new UnsupportedOperationException("Unimplemented method 'resolveConstantType'");
+        if (mapVariables != null) {
+            var key = name.substring(1);
+            if (mapVariables.containsKey(key)) {
+                org.hl7.fhir.r4b.model.Base itemValue = mapVariables.get(key);
+                if (itemValue != null)
+                    return new TypeDetails(CollectionStatus.SINGLETON, itemValue.fhirType());
+            }
+        }
+        return new TypeDetails(null);
     }
 
     @Override
