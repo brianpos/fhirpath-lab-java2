@@ -8,11 +8,17 @@
       "Kind": "Name",
       "Name": "given",
       "IsProximal": false,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 19
     },
     "IsProximal": false,
-    "Types": "HumanName"
+    "Types": "HumanName",
+    "StartLine": 1,
+    "StartColumn": 13
   },
   "IsProximal": true,
-  "Types": "Patient"
+  "Types": "Patient",
+  "StartLine": 1,
+  "StartColumn": 8
 }

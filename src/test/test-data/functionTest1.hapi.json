@@ -6,7 +6,9 @@
       "Kind": "Constant",
       "Constant": "trc",
       "IsProximal": true,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 12
     }
   ],
   "Inner": {
@@ -20,7 +22,9 @@
           "Kind": "Constant",
           "Constant": " ",
           "IsProximal": true,
-          "Types": "string"
+          "Types": "string",
+          "StartLine": 1,
+          "StartColumn": 28
         }
       ],
       "Inner": {
@@ -31,7 +35,9 @@
             "Kind": "Name",
             "Name": "family",
             "IsProximal": true,
-            "Types": "string"
+            "Types": "string",
+            "StartLine": 1,
+            "StartColumn": 44
           }
         ],
         "Inner": {
@@ -42,21 +48,33 @@
               "Kind": "Constant",
               "Constant": ", ",
               "IsProximal": true,
-              "Types": "string"
+              "Types": "string",
+              "StartLine": 1,
+              "StartColumn": 55
             }
           ],
           "IsProximal": false,
-          "Types": "string"
+          "Types": "string",
+          "StartLine": 1,
+          "StartColumn": 50
         },
         "IsProximal": false,
-        "Types": "string[]"
+        "Types": "string[]",
+        "StartLine": 1,
+        "StartColumn": 37
       },
       "IsProximal": false,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 24
     },
     "IsProximal": false,
-    "Types": "string"
+    "Types": "string",
+    "StartLine": 1,
+    "StartColumn": 19
   },
   "IsProximal": true,
-  "Types": "HumanName"
+  "Types": "HumanName",
+  "StartLine": 1,
+  "StartColumn": 6
 }

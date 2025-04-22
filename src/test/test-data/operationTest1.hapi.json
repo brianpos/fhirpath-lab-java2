@@ -17,12 +17,26 @@
         "Kind": "Constant",
         "Constant": "d",
         "IsProximal": false,
-        "Types": "string"
+        "Types": "string",
+        "StartLine": 1,
+        "StartColumn": 28
       },
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 20,
+      "StartOpLine": 1,
+      "StartOpColumn": 22
     },
-    "Types": "string"
+    "Types": "string",
+    "StartLine": 1,
+    "StartColumn": 12,
+    "StartOpLine": 1,
+    "StartOpColumn": 14
   },
   "Types": "string",
-  "OpTypes": "string"
+  "OpTypes": "string",
+  "StartLine": 1,
+  "StartColumn": 4,
+  "StartOpLine": 1,
+  "StartOpColumn": 6
 }

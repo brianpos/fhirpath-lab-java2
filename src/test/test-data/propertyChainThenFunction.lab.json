@@ -20,14 +20,22 @@
                   "ReturnType": "Patient"
                 }
               ],
-              "ReturnType": "Patient"
+              "ReturnType": "Patient",
+              "Line": 1,
+              "Column": 8
             }
           ],
-          "ReturnType": "HumanName"
+          "ReturnType": "HumanName",
+          "Line": 1,
+          "Column": 13
         }
       ],
-      "ReturnType": "string"
+      "ReturnType": "string",
+      "Line": 1,
+      "Column": 19
     }
   ],
-  "ReturnType": "string"
+  "ReturnType": "string",
+  "Line": 1,
+  "Column": 25
 }

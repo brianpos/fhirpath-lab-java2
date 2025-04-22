@@ -10,8 +10,12 @@
     {
       "ExpressionType": "ConstantExpression",
       "Name": "1",
-      "ReturnType": "integer"
+      "ReturnType": "integer",
+      "Line": 1,
+      "Column": 2
     }
   ],
-  "ReturnType": "integer"
+  "ReturnType": "integer",
+  "Line": 1,
+  "Column": 3
 }

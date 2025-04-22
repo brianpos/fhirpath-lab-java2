@@ -99,7 +99,8 @@ class AstMapperTest {
             String jsonFhirPathLabAst = objectMapper.writeValueAsString(nodeParse);
 
             // Write the direct results of the test to the output (so you can compare it)
-            // Uncomment the following line to write the actual response to a file for debugging
+            // Uncomment the following line to write the actual response to a file for
+            // debugging
             // WriteJsonTestFile(testName, "hapi2", jsonHapiAst);
             // WriteJsonTestFile(testName, "lab2", jsonFhirPathLabAst);
 

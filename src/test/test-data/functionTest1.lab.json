@@ -26,21 +26,31 @@
                     {
                       "ExpressionType": "ConstantExpression",
                       "Name": "trc",
-                      "ReturnType": "string"
+                      "ReturnType": "string",
+                      "Line": 1,
+                      "Column": 12
                     }
                   ],
-                  "ReturnType": "HumanName"
+                  "ReturnType": "HumanName",
+                  "Line": 1,
+                  "Column": 6
                 }
               ],
-              "ReturnType": "string"
+              "ReturnType": "string",
+              "Line": 1,
+              "Column": 19
             },
             {
               "ExpressionType": "ConstantExpression",
               "Name": " ",
-              "ReturnType": "string"
+              "ReturnType": "string",
+              "Line": 1,
+              "Column": 28
             }
           ],
-          "ReturnType": "string"
+          "ReturnType": "string",
+          "Line": 1,
+          "Column": 24
         },
         {
           "ExpressionType": "ChildExpression",
@@ -52,16 +62,24 @@
               "ReturnType": "string"
             }
           ],
-          "ReturnType": "string"
+          "ReturnType": "string",
+          "Line": 1,
+          "Column": 44
         }
       ],
-      "ReturnType": "string[]"
+      "ReturnType": "string[]",
+      "Line": 1,
+      "Column": 37
     },
     {
       "ExpressionType": "ConstantExpression",
       "Name": ", ",
-      "ReturnType": "string"
+      "ReturnType": "string",
+      "Line": 1,
+      "Column": 55
     }
   ],
-  "ReturnType": "string"
+  "ReturnType": "string",
+  "Line": 1,
+  "Column": 50
 }

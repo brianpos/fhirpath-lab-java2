@@ -6,7 +6,9 @@
       "Kind": "Constant",
       "Constant": "trc",
       "IsProximal": true,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 12
     },
     {
       "Kind": "Name",
@@ -16,10 +18,14 @@
         "Function": "first",
         "Parameters": [],
         "IsProximal": false,
-        "Types": "string"
+        "Types": "string",
+        "StartLine": 1,
+        "StartColumn": 27
       },
       "IsProximal": true,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 21
     }
   ],
   "Inner": {
@@ -33,7 +39,9 @@
           "Kind": "Constant",
           "Constant": " ",
           "IsProximal": true,
-          "Types": "string"
+          "Types": "string",
+          "StartLine": 1,
+          "StartColumn": 45
         }
       ],
       "Inner": {
@@ -44,7 +52,9 @@
             "Kind": "Name",
             "Name": "family",
             "IsProximal": true,
-            "Types": "string"
+            "Types": "string",
+            "StartLine": 1,
+            "StartColumn": 61
           }
         ],
         "Inner": {
@@ -55,21 +65,33 @@
               "Kind": "Constant",
               "Constant": ", ",
               "IsProximal": true,
-              "Types": "string"
+              "Types": "string",
+              "StartLine": 1,
+              "StartColumn": 72
             }
           ],
           "IsProximal": false,
-          "Types": "string"
+          "Types": "string",
+          "StartLine": 1,
+          "StartColumn": 67
         },
         "IsProximal": false,
-        "Types": "string[]"
+        "Types": "string[]",
+        "StartLine": 1,
+        "StartColumn": 54
       },
       "IsProximal": false,
-      "Types": "string"
+      "Types": "string",
+      "StartLine": 1,
+      "StartColumn": 41
     },
     "IsProximal": false,
-    "Types": "string"
+    "Types": "string",
+    "StartLine": 1,
+    "StartColumn": 36
   },
   "IsProximal": true,
-  "Types": "HumanName"
+  "Types": "HumanName",
+  "StartLine": 1,
+  "StartColumn": 6
 }

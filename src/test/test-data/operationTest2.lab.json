@@ -9,21 +9,31 @@
         {
           "ExpressionType": "ConstantExpression",
           "Name": "a",
-          "ReturnType": "string"
+          "ReturnType": "string",
+          "Line": 1,
+          "Column": 4
         },
         {
           "ExpressionType": "ConstantExpression",
           "Name": "b",
-          "ReturnType": "string"
+          "ReturnType": "string",
+          "Line": 1,
+          "Column": 12
         }
       ],
-      "ReturnType": "string"
+      "ReturnType": "string",
+      "Line": 1,
+      "Column": 6
     },
     {
       "ExpressionType": "ConstantExpression",
       "Name": "c",
-      "ReturnType": "string"
+      "ReturnType": "string",
+      "Line": 1,
+      "Column": 20
     }
   ],
-  "ReturnType": "string"
+  "ReturnType": "string",
+  "Line": 1,
+  "Column": 14
 }

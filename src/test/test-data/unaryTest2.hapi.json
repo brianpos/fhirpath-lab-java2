@@ -6,8 +6,12 @@
     "Kind": "Constant",
     "Constant": "1",
     "IsProximal": false,
-    "Types": "integer"
+    "Types": "integer",
+    "StartLine": 1,
+    "StartColumn": 2
   },
   "Types": "decimal, integer, quantity",
-  "OpTypes": "integer"
+  "OpTypes": "integer",
+  "StartLine": 1,
+  "StartColumn": 3
 }
