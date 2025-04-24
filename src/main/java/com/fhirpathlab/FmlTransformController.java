@@ -120,7 +120,7 @@ public class FmlTransformController {
             }
 
             // Create a new context for the call
-            var context = contextFactory.getContextR5();
+            var context = contextFactory.getContextR4bAsR5();
             var localContext = new org.hl7.fhir.r5.context.SimpleWorkerContext(context);
             readCustomStructureDefinitions(localContext, parameters);
 
