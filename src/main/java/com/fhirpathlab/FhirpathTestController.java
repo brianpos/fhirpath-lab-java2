@@ -477,7 +477,7 @@ public class FhirpathTestController {
         // Parse out the expression tree for the debug output
         var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
         var pathBasedContextExpression = contextExpression;
-        if (contextExpression != null && contextOutputs.size() > 1) {
+        if (contextExpression != null && contextOutputs.size() > 0) {
             var firstElement = (org.hl7.fhir.r5.elementmodel.Element)contextOutputs.get(0);
             if (firstElement != null)
                 pathBasedContextExpression = firstElement.getPath().replaceAll("\\[[0-9]+\\]", "");

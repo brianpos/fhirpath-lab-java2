@@ -3,19 +3,17 @@ package com.fhirpathlab.utils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import org.hl7.fhir.r5.context.IWorkerContext;
 import org.hl7.fhir.r5.model.DataType;
-import org.hl7.fhir.utilities.graphql.Parser;
+import org.hl7.fhir.r5.model.PrimitiveType;
+import org.hl7.fhir.utilities.Utilities;
 import org.hl7.fhir.r5.elementmodel.Manager;
-import org.hl7.fhir.r5.elementmodel.ValidatedFragment;
 import org.hl7.fhir.r5.formats.IParser.OutputStyle;
-import org.hl7.fhir.exceptions.FHIRException;
-import org.hl7.fhir.exceptions.FHIRFormatError;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
-import org.hl7.fhir.r4b.model.Enumerations.FHIRVersion;
+import org.hl7.fhir.exceptions.FHIRException;
+import org.hl7.fhir.r4b.model.Factory;
 import org.hl7.fhir.r4b.model.Parameters.ParametersParameterComponent;
 
 public class ParamUtils {
@@ -33,7 +31,7 @@ public class ParamUtils {
             String theName, org.hl7.fhir.r4b.model.DataType theValue) {
         var result = theParameter.addPart();
         result.setName(theName);
-        result.setValue(theValue);
+        setParameterDataTypeValue(result, theValue);
         return result;
     }
 
@@ -41,120 +39,32 @@ public class ParamUtils {
             DataType theValue) {
         var result = theParameter.addPart();
         result.setName(theName);
-        if (theValue instanceof org.hl7.fhir.r5.model.StringType) {
-            org.hl7.fhir.r5.model.StringType st = (org.hl7.fhir.r5.model.StringType) theValue;
-            if (st.getValue().equalsIgnoreCase("")) {
-                result.setName("empty-string");
-                // result.setValue(new StringType("empty-string"));
-            } else {
-                var valWithExt = new StringType(st.getValue());
-                result.setValue(valWithExt);
-                // what about any extensions?
-            }
-        } else {
-            // and need to convert the DataType to the correct type
-            // ByteArrayOutputStream bs = new ByteArrayOutputStream();
-            // org.hl7.fhir.r5.formats.JsonParser jp5 = new
-            // org.hl7.fhir.r5.formats.JsonParser();
-            // org.hl7.fhir.r4b.formats.JsonParser jp4 = new
-            // org.hl7.fhir.r4b.formats.JsonParser();
-            // try {
-            // jp5.compose(bs, theValue, "root");
-            // ByteArrayInputStream bi = new ByteArrayInputStream(bs.toByteArray());
-            // var dt4 = jp4.parseType(bi, theValue.fhirType());
-            // ParamUtils.add(result, theValue.fhirType(), dt4);
-            // } catch (IOException e) {
-            // }
-            result.setValue(converDataType(theValue));
-            // ParamUtils.add(result, theValue.fhirType(), converDataType(theValue));
-        }
-
-        // what about any extensions?
-        if (theValue.hasExtension()) {
-
-        }
+        var r4dt = converDataType(theValue);
+        setParameterDataTypeValue(result, r4dt);
         return result;
     }
 
+    @SuppressWarnings("rawtypes")
     public static org.hl7.fhir.r4b.model.DataType converDataType(org.hl7.fhir.r5.model.DataType theValue) {
         org.hl7.fhir.r4b.model.DataType result = null;
         org.hl7.fhir.r5.formats.JsonParser jp5 = new org.hl7.fhir.r5.formats.JsonParser();
         org.hl7.fhir.r4b.formats.JsonParser jp4 = new org.hl7.fhir.r4b.formats.JsonParser();
 
         if (theValue.isPrimitive()) {
-
-        }
-        if (theValue instanceof org.hl7.fhir.r5.model.StringType) {
-            org.hl7.fhir.r5.model.StringType st = (org.hl7.fhir.r5.model.StringType) theValue;
-            if (st.getValue().equalsIgnoreCase("")) {
-                result = new StringType("empty-string");
-            } else {
-                if (theValue instanceof org.hl7.fhir.r5.model.CodeType)
-                    result = new org.hl7.fhir.r4b.model.CodeType(st.getValue());
-                else if (theValue instanceof org.hl7.fhir.r5.model.MarkdownType)
-                    result = new org.hl7.fhir.r4b.model.MarkdownType(st.getValue());
-                else
-                    result = new StringType(st.getValue());
+            var np = new Factory().create(theValue.fhirType());
+            if (np instanceof org.hl7.fhir.r4b.model.PrimitiveType) {
+                ((org.hl7.fhir.r4b.model.PrimitiveType) np)
+                        .setValueAsString(((org.hl7.fhir.r5.model.PrimitiveType) theValue).asStringValue());
+                result = np;
             }
-        } else if (theValue instanceof org.hl7.fhir.r5.model.UriType) {
-            org.hl7.fhir.r5.model.UriType st = (org.hl7.fhir.r5.model.UriType) theValue;
-            if (st.getValue().equalsIgnoreCase("")) {
-                result = new StringType("empty-string");
-            } else {
-                if (theValue instanceof org.hl7.fhir.r5.model.CanonicalType)
-                    result = new org.hl7.fhir.r4b.model.CanonicalType(st.getValue());
-
-                else if (theValue instanceof org.hl7.fhir.r5.model.IdType)
-                    result = new org.hl7.fhir.r4b.model.IdType(st.getValue());
-
-                else if (theValue instanceof org.hl7.fhir.r5.model.OidType)
-                    result = new org.hl7.fhir.r4b.model.OidType(st.getValue());
-
-                else if (theValue instanceof org.hl7.fhir.r5.model.SidType) {
-                    var newSid = new org.hl7.fhir.r4b.model.SidType();
-                    newSid.fromStringValue(st.getValue());
-                    result = newSid;
+            if (theValue.hasExtension()) {
+                // migrate any extensions to the new type
+                for (var ext : theValue.getExtension()) {
+                    var newExt = new org.hl7.fhir.r4b.model.Extension(ext.getUrl(),  converDataType(ext.getValue()));
+                    ((org.hl7.fhir.r4b.model.PrimitiveType) np).addExtension(newExt);
                 }
-
-                else if (theValue instanceof org.hl7.fhir.r5.model.UrlType)
-                    result = new org.hl7.fhir.r4b.model.UrlType(st.getValue());
-
-                else if (theValue instanceof org.hl7.fhir.r5.model.UuidType)
-                    result = new org.hl7.fhir.r4b.model.UuidType(st.getValue());
-
-                else
-                    result = new org.hl7.fhir.r4b.model.UriType(st.getValue());
             }
-        } else if (theValue instanceof org.hl7.fhir.r5.model.IntegerType) {
-            org.hl7.fhir.r5.model.IntegerType st = (org.hl7.fhir.r5.model.IntegerType) theValue;
-            result = new org.hl7.fhir.r4b.model.IntegerType(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.DecimalType) {
-            org.hl7.fhir.r5.model.DecimalType st = (org.hl7.fhir.r5.model.DecimalType) theValue;
-            result = new org.hl7.fhir.r4b.model.DecimalType(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.Integer64Type) {
-            org.hl7.fhir.r5.model.Integer64Type st = (org.hl7.fhir.r5.model.Integer64Type) theValue;
-            result = new org.hl7.fhir.r4b.model.Integer64Type(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.BooleanType) {
-            org.hl7.fhir.r5.model.BooleanType st = (org.hl7.fhir.r5.model.BooleanType) theValue;
-            result = new org.hl7.fhir.r4b.model.BooleanType(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.Base64BinaryType) {
-            org.hl7.fhir.r5.model.Base64BinaryType st = (org.hl7.fhir.r5.model.Base64BinaryType) theValue;
-            result = new org.hl7.fhir.r4b.model.Base64BinaryType(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.DateType) {
-            org.hl7.fhir.r5.model.DateType st = (org.hl7.fhir.r5.model.DateType) theValue;
-            result = new org.hl7.fhir.r4b.model.DateType(st.getValue(), st.getPrecision());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.DateTimeType) {
-            org.hl7.fhir.r5.model.DateTimeType st = (org.hl7.fhir.r5.model.DateTimeType) theValue;
-            result = new org.hl7.fhir.r4b.model.DateTimeType(st.getValue(), st.getPrecision());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.InstantType) {
-            org.hl7.fhir.r5.model.InstantType st = (org.hl7.fhir.r5.model.InstantType) theValue;
-            result = new org.hl7.fhir.r4b.model.InstantType(st.getValue());
-        } else if (theValue instanceof org.hl7.fhir.r5.model.TimeType) {
-            org.hl7.fhir.r5.model.TimeType st = (org.hl7.fhir.r5.model.TimeType) theValue;
-            result = new org.hl7.fhir.r4b.model.TimeType(st.getValue());
         } else {
-
-            // I think we just have enumeration and Xhtml as the left over types...
 
             // and need to convert the DataType to the correct type
             ByteArrayOutputStream bs = new ByteArrayOutputStream();
@@ -163,6 +73,7 @@ public class ParamUtils {
                 ByteArrayInputStream bi = new ByteArrayInputStream(bs.toByteArray());
                 result = jp4.parseType(bi, theValue.fhirType());
             } catch (IOException e) {
+
             }
         }
         return result;
@@ -211,6 +122,7 @@ public class ParamUtils {
             var jsonParser = new org.hl7.fhir.r4b.formats.JsonParser();
             var stream = new java.io.ByteArrayOutputStream();
             Manager.compose(context, em, stream, Manager.FhirFormat.JSON, OutputStyle.NORMAL, em.fhirType());
+            var jsonText = stream.toString();
 
             if (em.getPath() != null) {
                 result.addExtension("http://fhir.forms-lab.com/StructureDefinition/resource-path",
@@ -219,50 +131,37 @@ public class ParamUtils {
             if (em.isResource()) {
                 // if this is an R4 resource, we can put it into the object model
                 if (em.getProperty().getStructure().getFhirVersion().toCode().charAt(0) == '4') {
-                    var resource = jsonParser.parse(stream.toString());
+                    var resource = jsonParser.parse(jsonText);
                     result.setResource(resource);
                 } else {
                     result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                            new StringType(stream.toString()));
+                            new StringType(jsonText));
                 }
 
             } else if (em.fhirType().equalsIgnoreCase("BackboneElement")) {
-                String backboneJson = stream.toString().replace("\"resourceType\":\"BackboneElement\",", "");
+                String backboneJson = jsonText.replace("\"resourceType\":\"BackboneElement\",", "");
                 result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
                         new StringType(backboneJson));
 
             } else if (em.fhirType().equalsIgnoreCase("Extension")) {
-                String extensionJson = stream.toString().replace("\"resourceType\":\"Extension\",", "");
+                String extensionJson = jsonText.replace("\"resourceType\":\"Extension\",", "");
                 result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
                         new StringType(extensionJson));
 
             } else if (em.isPrimitive()) {
-                var dt = oc.convertToType(em);
+                var dt = convertToType(em);
                 var r4dt = converDataType(dt);
-                result.setValue(r4dt);
-                // if (dt instanceof org.hl7.fhir.r5.model.StringType) {
-                // org.hl7.fhir.r5.model.StringType st = (org.hl7.fhir.r5.model.StringType) dt;
-                // if (st.getValue().equalsIgnoreCase(""))
-                // result.setName("empty-string");
-                // else {
-                // var valWithExt = new StringType(st.getValue());
-                // result.setValue(valWithExt);
-                // // what about any extensions?
-                // }
-                // } else {
-                // // and need to convert the DataType to the correct type
-                // var val = jsonParser.parseAnyType(stream.toString(), dt.fhirType());
-                // result.setValue(val);
-                // }
+                setParameterDataTypeValue(result, r4dt);
 
             } else {
                 // Let over are the bigger DataTypes such as Identifier/HumanName/Period etc.
                 try {
-                    var val = jsonParser.parseAnyType(stream.toString(), em.fhirType());
-                    result.setValue(val);
-                } catch (FHIRFormatError ex) {
+                    var val = jsonParser.parseAnyType(jsonText, em.fhirType());
+                    result.setValue(val); // throw's if the type isn't a valid params type, in which case go the json
+                                          // thing...
+                } catch (Error ex) {
                     result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                            new StringType(stream.toString()));
+                            new StringType(jsonText));
                 }
             }
 
@@ -275,64 +174,52 @@ public class ParamUtils {
         return result;
     }
 
-    @SuppressWarnings("deprecation")
-    public static ParametersParameterComponent addTypedElement(IWorkerContext context,
-            @SuppressWarnings("deprecation") org.hl7.fhir.r4b.elementmodel.ObjectConverter oc,
-            Parameters.ParametersParameterComponent theParameter,
-            @SuppressWarnings("deprecation") org.hl7.fhir.r4b.elementmodel.Element em) {
-        var result = theParameter.addPart();
-        result.setName(em.fhirType());
-        if (em.getPath() != null) {
-            result.addExtension("http://fhir.forms-lab.com/StructureDefinition/resource-path",
-                    new StringType(em.getPath().replace("[x]", "")));
-        }
-
-        try {
-            if (em.isResource()) {
-                result.setResource(oc.convert(em));
-
-            } else if (em.fhirType().equalsIgnoreCase("BackboneElement")) {
-                var stream = new java.io.ByteArrayOutputStream();
-                // Manager.compose(context, em, stream, Manager.FhirFormat.JSON,
-                // OutputStyle.NORMAL, em.fhirType());
-                String backboneJson = stream.toString().replace("\"resourceType\":\"BackboneElement\",", "");
-                result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                        new StringType(backboneJson));
-
-            } else if (em.fhirType().equalsIgnoreCase("Extension")) {
-                var stream = new java.io.ByteArrayOutputStream();
-                // Manager.compose(context, em, stream, Manager.FhirFormat.JSON,
-                // OutputStyle.NORMAL, em.fhirType());
-                String extensionJson = stream.toString().replace("\"resourceType\":\"Extension\",", "");
-                result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                        new StringType(extensionJson));
-
-            } else if (em.isPrimitive()) {
-                @SuppressWarnings("deprecation")
-                var dt = oc.convertToType(em);
-                if (dt instanceof StringType) {
-                    StringType st = (StringType) dt;
-                    if (st.getValue().equalsIgnoreCase(""))
-                        result.setName("empty-string");
-                    else
-                        result.setValue(st);
-                } else {
-                    result.setValue(dt);
+    public static DataType convertToType(org.hl7.fhir.r5.elementmodel.Element element) throws FHIRException {
+        DataType b = new org.hl7.fhir.r5.model.Factory().create(element.fhirType());
+        if (b instanceof PrimitiveType) {
+            ((PrimitiveType) b).setValueAsString(element.primitiveValue());
+            // If there are extenions, walk them too...
+            for (org.hl7.fhir.r5.elementmodel.Element child : element.getChildren()) {
+                if (Utilities.existsInList(child.getName(), "extension", "modifierExtension")) {
+                    var urlChild = child.getNamedChild("url");
+                    if (urlChild != null) {
+                        // this is a child extension, so add it to the parent
+                        org.hl7.fhir.r5.model.Extension ext = new org.hl7.fhir.r5.model.Extension(urlChild.getValue());
+                        ((PrimitiveType) b).addExtension(ext);
+                        // set the value of the extension
+                        var valueChild = child.getNamedChild("value");
+                        if (valueChild != null) {
+                            // this is a child extension, so add it to the parent
+                            var value = convertToType(valueChild);
+                            if (value != null) {
+                                ext.setValue(value);
+                            }
+                        }
+                    }
                 }
-
-            } else {
-                // Let over are the bigger DataTypes such as Identifier/HumanName/Period etc.
-                @SuppressWarnings("deprecation")
-                var dt = em.asType();
-                result.setValue(dt);
             }
-
-            // } catch (IOException e) {
-            // ParamUtils.add(result, "cast-error", new StringType(e.getMessage()));
-        } catch (java.lang.IllegalArgumentException e) {
-            ParamUtils.add(result, "cast-error", new StringType(e.getMessage()));
+        } else {
+            for (org.hl7.fhir.r5.elementmodel.Element child : element.getChildren()) {
+                b.setProperty(child.getName(), convertToType(child));
+            }
         }
+        return b;
+    }
 
-        return result;
+    /**
+     * This is a helper method to set the value of the parameter. It will set the
+     * name to "empty-string" if the value is an empty string.
+     * 
+     * @param result The ParametersParameterComponent to set the value for.
+     * @param dt     The DataType to set as the value.
+     */
+    private static void setParameterDataTypeValue(ParametersParameterComponent result,
+            org.hl7.fhir.r4b.model.DataType dt) {
+        result.setValue(dt);
+        if (dt instanceof StringType) {
+            StringType st = (StringType) dt;
+            if (st.getValue().equalsIgnoreCase(""))
+                result.setName("empty-string");
+        }
     }
 }
