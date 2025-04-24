@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -102,7 +103,7 @@ public class FhirpathTestController {
 
             // Parse the input content into a Patient resource
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
-            var parametersR5 = (org.hl7.fhir.r5.model.Parameters) parserR5.parse(content);  
+            var parametersR5 = (org.hl7.fhir.r5.model.Parameters) parserR5.parse(content);
             String contextExpression = null;
             if (parameters.getParameterValue("context") != null)
                 contextExpression = parameters.getParameterValue("context").primitiveValue();
@@ -116,7 +117,8 @@ public class FhirpathTestController {
                 if (parametersR5.getParameter("resource") != null)
                     resource = getResourceR5(contextFactory.getContextR5(), parametersR5.getParameter("resource"));
 
-                var responseParameters = evaluate("R5", contextFactory.getContextR5(), resource, contextExpression, expression, variables);
+                var responseParameters = evaluate("R5", contextFactory.getContextR5(), resource, contextExpression,
+                        expression, variables);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -201,7 +203,8 @@ public class FhirpathTestController {
                 if (parameters.getParameter("resource") != null)
                     resource = getResource(contextFactory.getContextR4bAsR5(), parameters.getParameter("resource"));
 
-                var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource, contextExpression, expression, variables);
+                var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource,
+                        contextExpression, expression, variables);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -242,7 +245,8 @@ public class FhirpathTestController {
         }
     }
 
-    private org.hl7.fhir.r5.elementmodel.Element getResource(org.hl7.fhir.r5.context.SimpleWorkerContext context, ParametersParameterComponent part) {
+    private org.hl7.fhir.r5.elementmodel.Element getResource(org.hl7.fhir.r5.context.SimpleWorkerContext context,
+            ParametersParameterComponent part) {
         try {
             if (part.getResource() != null) {
                 // convert the resource into an element (via a JASON string)
@@ -290,7 +294,8 @@ public class FhirpathTestController {
         return null;
     }
 
-    private org.hl7.fhir.r5.elementmodel.Element getResourceR5(org.hl7.fhir.r5.context.SimpleWorkerContext context, org.hl7.fhir.r5.model.Parameters.ParametersParameterComponent part) {
+    private org.hl7.fhir.r5.elementmodel.Element getResourceR5(org.hl7.fhir.r5.context.SimpleWorkerContext context,
+            org.hl7.fhir.r5.model.Parameters.ParametersParameterComponent part) {
         try {
             if (part.getResource() != null) {
                 // convert the resource into an element (via a JSON string)
@@ -338,7 +343,8 @@ public class FhirpathTestController {
         return null;
     }
 
-    private void processVariables(org.hl7.fhir.r5.context.SimpleWorkerContext context, Parameters.ParametersParameterComponent variables,
+    private void processVariables(org.hl7.fhir.r5.context.SimpleWorkerContext context,
+            Parameters.ParametersParameterComponent variables,
             ParametersParameterComponent paramsPart,
             FHIRPathTestEvaluationServicesR5 services) {
         if (variables != null && variables.getPart() != null && !variables.getPart().isEmpty()) {
@@ -453,15 +459,35 @@ public class FhirpathTestController {
         return contextOutputs;
     }
 
-    public Parameters evaluate(String testEngineVersion, org.hl7.fhir.r5.context.SimpleWorkerContext context, org.hl7.fhir.r5.elementmodel.Element resource, String contextExpression,
+    public Parameters evaluate(String testEngineVersion, org.hl7.fhir.r5.context.SimpleWorkerContext context,
+            org.hl7.fhir.r5.elementmodel.Element resource, String contextExpression,
             String expression,
             Parameters.ParametersParameterComponent variables) throws IOException {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.19 ("+testEngineVersion+")");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.19 (" + testEngineVersion + ")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
+
+        // Add the resource parsed to the parameters
+        ByteArrayOutputStream bs = new ByteArrayOutputStream();
+        try {
+            Manager.compose(context, resource, bs, org.hl7.fhir.r5.elementmodel.Manager.FhirFormat.JSON,
+                    org.hl7.fhir.r5.formats.IParser.OutputStyle.PRETTY, null);
+            var jsonResource = bs.toString();
+
+            if (testEngineVersion.equals("R4B")) {
+                var resourceR4 = jsonParser.parse(jsonResource);
+                ParamUtils.add(paramsPart, "resource", resourceR4);
+            } else {
+                var part = ParamUtils.add(paramsPart, "resource");
+                    part.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
+                            new StringType(jsonResource));
+            }
+        } catch (IOException e) {
+
+        }
 
         var engine = new org.hl7.fhir.r5.fhirpath.FHIRPathEngine(context);
 
@@ -478,7 +504,7 @@ public class FhirpathTestController {
         var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
         var pathBasedContextExpression = contextExpression;
         if (contextExpression != null && contextOutputs.size() > 0) {
-            var firstElement = (org.hl7.fhir.r5.elementmodel.Element)contextOutputs.get(0);
+            var firstElement = (org.hl7.fhir.r5.elementmodel.Element) contextOutputs.get(0);
             if (firstElement != null)
                 pathBasedContextExpression = firstElement.getPath().replaceAll("\\[[0-9]+\\]", "");
         }
@@ -506,16 +532,15 @@ public class FhirpathTestController {
             var resultPart = ParamUtils.add(responseParameters, "result");
             services.setTraceToParameter(resultPart);
             if (contextExpression != null)
-            if (node instanceof org.hl7.fhir.r5.elementmodel.Element) {
-                var em = (org.hl7.fhir.r5.elementmodel.Element) node;
-                var path = em.getPath().replace("[x]", "");
-                if (!path.endsWith("]"))
-                    path = path + String.format("[%d]", i);
-                resultPart.setValue(new StringType(path));
-            }
-            else {
-                resultPart.setValue(new StringType(String.format("%s[%d]", contextExpression, i)));
-            }
+                if (node instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                    var em = (org.hl7.fhir.r5.elementmodel.Element) node;
+                    var path = em.getPath().replace("[x]", "");
+                    if (!path.endsWith("]"))
+                        path = path + String.format("[%d]", i);
+                    resultPart.setValue(new StringType(path));
+                } else {
+                    resultPart.setValue(new StringType(String.format("%s[%d]", contextExpression, i)));
+                }
 
             List<org.hl7.fhir.r5.model.Base> outputs;
             try {
