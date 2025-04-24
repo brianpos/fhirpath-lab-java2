@@ -60,7 +60,7 @@ public class ParamUtils {
             if (theValue.hasExtension()) {
                 // migrate any extensions to the new type
                 for (var ext : theValue.getExtension()) {
-                    var newExt = new org.hl7.fhir.r4b.model.Extension(ext.getUrl(),  converDataType(ext.getValue()));
+                    var newExt = new org.hl7.fhir.r4b.model.Extension(ext.getUrl(), converDataType(ext.getValue()));
                     ((org.hl7.fhir.r4b.model.PrimitiveType) np).addExtension(newExt);
                 }
             }
@@ -219,8 +219,11 @@ public class ParamUtils {
         result.setValue(dt);
         if (dt instanceof StringType) {
             StringType st = (StringType) dt;
-            if (st.getValue().equalsIgnoreCase(""))
+            if (st.getValue().equalsIgnoreCase("")) {
                 result.setName("empty-string");
+                if (!st.hasExtension())
+                    result.setValue(null);
+            }
         }
     }
 }
