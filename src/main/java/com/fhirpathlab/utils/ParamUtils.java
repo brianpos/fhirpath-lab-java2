@@ -212,6 +212,10 @@ public class ParamUtils {
             var stream = new java.io.ByteArrayOutputStream();
             Manager.compose(context, em, stream, Manager.FhirFormat.JSON, OutputStyle.NORMAL, em.fhirType());
 
+            if (em.getPath() != null) {
+                result.addExtension("http://fhir.forms-lab.com/StructureDefinition/resource-path",
+                        new StringType(em.getPath().replace("[x]", "")));
+            }
             if (em.isResource()) {
                 // if this is an R4 resource, we can put it into the object model
                 if (em.getProperty().getStructure().getFhirVersion().toCode().charAt(0) == '4') {
@@ -278,6 +282,10 @@ public class ParamUtils {
             @SuppressWarnings("deprecation") org.hl7.fhir.r4b.elementmodel.Element em) {
         var result = theParameter.addPart();
         result.setName(em.fhirType());
+        if (em.getPath() != null) {
+            result.addExtension("http://fhir.forms-lab.com/StructureDefinition/resource-path",
+                    new StringType(em.getPath().replace("[x]", "")));
+        }
 
         try {
             if (em.isResource()) {
