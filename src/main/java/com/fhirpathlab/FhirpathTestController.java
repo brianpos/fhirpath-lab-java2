@@ -471,18 +471,24 @@ public class FhirpathTestController {
         // pass through all the variables
         processVariables(context, variables, paramsPart, services);
 
+        // locate all of the context objects
+        List<Base> contextOutputs = evaluateContexts(contextExpression, resource, engine);
+
         // Parse out the expression tree for the debug output
         var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
-        generateParseTree(resource.fhirType(), contextExpression, expression, paramsPart, engine,
+        var pathBasedContextExpression = contextExpression;
+        if (contextExpression != null && contextOutputs.size() > 1) {
+            var firstElement = (org.hl7.fhir.r5.elementmodel.Element)contextOutputs.get(0);
+            if (firstElement != null)
+                pathBasedContextExpression = firstElement.getPath().replaceAll("\\[[0-9]+\\]", "");
+        }
+        generateParseTree(resource.fhirType(), pathBasedContextExpression, expression, paramsPart, engine,
                 outcome);
         if (outcome.hasIssue()) {
             var oucomePart = paramsPart.addPart();
             oucomePart.setName("debugOutcome");
             oucomePart.setResource(outcome);
         }
-
-        // locate all of the context objects
-        List<Base> contextOutputs = evaluateContexts(contextExpression, resource, engine);
 
         processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services,
                 resource, contextOutputs);
@@ -500,7 +506,16 @@ public class FhirpathTestController {
             var resultPart = ParamUtils.add(responseParameters, "result");
             services.setTraceToParameter(resultPart);
             if (contextExpression != null)
+            if (node instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                var em = (org.hl7.fhir.r5.elementmodel.Element) node;
+                var path = em.getPath().replace("[x]", "");
+                if (!path.endsWith("]"))
+                    path = path + String.format("[%d]", i);
+                resultPart.setValue(new StringType(path));
+            }
+            else {
                 resultPart.setValue(new StringType(String.format("%s[%d]", contextExpression, i)));
+            }
 
             List<org.hl7.fhir.r5.model.Base> outputs;
             try {
