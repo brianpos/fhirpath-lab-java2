@@ -160,6 +160,7 @@ public class ParamUtils {
                     result.setValue(val); // throw's if the type isn't a valid params type, in which case go the json
                                           // thing...
                 } catch (Error ex) {
+                    jsonText = jsonText.replace("\"resourceType\":\"" + em.fhirType() + "\",", "");
                     result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
                             new StringType(jsonText));
                 }
