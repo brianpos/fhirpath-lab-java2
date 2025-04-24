@@ -5,7 +5,7 @@
     "name" : "parameters",
     "part" : [{
       "name" : "evaluator",
-      "valueString" : "Java 6.5.19 (r4b)"
+      "valueString" : "Java 6.5.19 (R4B)"
     },
     {
       "name" : "context",
@@ -17,20 +17,24 @@
     },
     {
       "name" : "parseDebugTree",
-      "valueString" : "{\n  \"ExpressionType\" : \"FunctionCallExpression\",\n  \"Name\" : \"join\",\n  \"Arguments\" : [ {\n    \"ExpressionType\" : \"FunctionCallExpression\",\n    \"Name\" : \"combine\",\n    \"Arguments\" : [ {\n      \"ExpressionType\" : \"FunctionCallExpression\",\n      \"Name\" : \"join\",\n      \"Arguments\" : [ {\n        \"ExpressionType\" : \"ChildExpression\",\n        \"Name\" : \"given\",\n        \"Arguments\" : [ {\n          \"ExpressionType\" : \"FunctionCallExpression\",\n          \"Name\" : \"trace\",\n          \"Arguments\" : [ {\n            \"ExpressionType\" : \"AxisExpression\",\n            \"Name\" : \"builtin.that\",\n            \"ReturnType\" : \"Patient.name\"\n          }, {\n            \"ExpressionType\" : \"ConstantExpression\",\n            \"Name\" : \"trc\",\n            \"ReturnType\" : \"string\",\n            \"Line\" : 1,\n            \"Column\" : 12\n          } ],\n          \"ReturnType\" : \"HumanName\",\n          \"Line\" : 1,\n          \"Column\" : 6\n        } ],\n        \"ReturnType\" : \"string\",\n        \"Line\" : 1,\n        \"Column\" : 19\n      }, {\n        \"ExpressionType\" : \"ConstantExpression\",\n        \"Name\" : \" \",\n        \"ReturnType\" : \"string\",\n        \"Line\" : 1,\n        \"Column\" : 28\n      } ],\n      \"ReturnType\" : \"string\",\n      \"Line\" : 1,\n      \"Column\" : 24\n    }, {\n      \"ExpressionType\" : \"ChildExpression\",\n      \"Name\" : \"family\",\n      \"Arguments\" : [ {\n        \"ExpressionType\" : \"AxisExpression\",\n        \"Name\" : \"builtin.that\",\n        \"ReturnType\" : \"string\"\n      } ],\n      \"ReturnType\" : \"string\",\n      \"Line\" : 2,\n      \"Column\" : 17\n    } ],\n    \"ReturnType\" : \"string[]\",\n    \"Line\" : 2,\n    \"Column\" : 10\n  }, {\n    \"ExpressionType\" : \"ConstantExpression\",\n    \"Name\" : \", \",\n    \"ReturnType\" : \"string\",\n    \"Line\" : 2,\n    \"Column\" : 28\n  } ],\n  \"ReturnType\" : \"string\",\n  \"Line\" : 2,\n  \"Column\" : 23\n}"
+      "valueString" : "{\n  \"ExpressionType\" : \"FunctionCallExpression\",\n  \"Name\" : \"join\",\n  \"Arguments\" : [ {\n    \"ExpressionType\" : \"FunctionCallExpression\",\n    \"Name\" : \"combine\",\n    \"Arguments\" : [ {\n      \"ExpressionType\" : \"FunctionCallExpression\",\n      \"Name\" : \"join\",\n      \"Arguments\" : [ {\n        \"ExpressionType\" : \"ChildExpression\",\n        \"Name\" : \"given\",\n        \"Arguments\" : [ {\n          \"ExpressionType\" : \"FunctionCallExpression\",\n          \"Name\" : \"trace\",\n          \"Arguments\" : [ {\n            \"ExpressionType\" : \"AxisExpression\",\n            \"Name\" : \"builtin.that\",\n            \"ReturnType\" : \"Patient.name\"\n          }, {\n            \"ExpressionType\" : \"ConstantExpression\",\n            \"Name\" : \"trc\",\n            \"ReturnType\" : \"system.String\",\n            \"Line\" : 1,\n            \"Column\" : 7\n          } ],\n          \"ReturnType\" : \"HumanName\",\n          \"Line\" : 1,\n          \"Column\" : 1\n        } ],\n        \"ReturnType\" : \"string[]\",\n        \"Line\" : 1,\n        \"Column\" : 14\n      }, {\n        \"ExpressionType\" : \"ConstantExpression\",\n        \"Name\" : \" \",\n        \"ReturnType\" : \"system.String\",\n        \"Line\" : 1,\n        \"Column\" : 25\n      } ],\n      \"ReturnType\" : \"system.String\",\n      \"Line\" : 1,\n      \"Column\" : 20\n    }, {\n      \"ExpressionType\" : \"ChildExpression\",\n      \"Name\" : \"family\",\n      \"Arguments\" : [ {\n        \"ExpressionType\" : \"AxisExpression\",\n        \"Name\" : \"builtin.that\",\n        \"ReturnType\" : \"system.String\"\n      } ],\n      \"ReturnType\" : \"string\",\n      \"Line\" : 2,\n      \"Column\" : 11\n    } ],\n    \"ReturnType\" : \"string[], system.String[]\",\n    \"Line\" : 2,\n    \"Column\" : 3\n  }, {\n    \"ExpressionType\" : \"ConstantExpression\",\n    \"Name\" : \", \",\n    \"ReturnType\" : \"system.String\",\n    \"Line\" : 2,\n    \"Column\" : 24\n  } ],\n  \"ReturnType\" : \"system.String\",\n  \"Line\" : 2,\n  \"Column\" : 19\n}"
     },
     {
       "name" : "parseDebugTreeJava",
-      "valueString" : "{\n  \"Kind\" : \"Function\",\n  \"Function\" : \"trace\",\n  \"Parameters\" : [ {\n    \"Kind\" : \"Constant\",\n    \"Constant\" : \"trc\",\n    \"IsProximal\" : true,\n    \"Types\" : \"string\",\n    \"StartLine\" : 1,\n    \"StartColumn\" : 12\n  } ],\n  \"Inner\" : {\n    \"Kind\" : \"Name\",\n    \"Name\" : \"given\",\n    \"Inner\" : {\n      \"Kind\" : \"Function\",\n      \"Function\" : \"join\",\n      \"Parameters\" : [ {\n        \"Kind\" : \"Constant\",\n        \"Constant\" : \" \",\n        \"IsProximal\" : true,\n        \"Types\" : \"string\",\n        \"StartLine\" : 1,\n        \"StartColumn\" : 28\n      } ],\n      \"Inner\" : {\n        \"Kind\" : \"Function\",\n        \"Function\" : \"combine\",\n        \"Parameters\" : [ {\n          \"Kind\" : \"Name\",\n          \"Name\" : \"family\",\n          \"IsProximal\" : true,\n          \"Types\" : \"string\",\n          \"StartLine\" : 2,\n          \"StartColumn\" : 17\n        } ],\n        \"Inner\" : {\n          \"Kind\" : \"Function\",\n          \"Function\" : \"join\",\n          \"Parameters\" : [ {\n            \"Kind\" : \"Constant\",\n            \"Constant\" : \", \",\n            \"IsProximal\" : true,\n            \"Types\" : \"string\",\n            \"StartLine\" : 2,\n            \"StartColumn\" : 28\n          } ],\n          \"IsProximal\" : false,\n          \"Types\" : \"string\",\n          \"StartLine\" : 2,\n          \"StartColumn\" : 23\n        },\n        \"IsProximal\" : false,\n        \"Types\" : \"string[]\",\n        \"StartLine\" : 2,\n        \"StartColumn\" : 10\n      },\n      \"IsProximal\" : false,\n      \"Types\" : \"string\",\n      \"StartLine\" : 1,\n      \"StartColumn\" : 24\n    },\n    \"IsProximal\" : false,\n    \"Types\" : \"string\",\n    \"StartLine\" : 1,\n    \"StartColumn\" : 19\n  },\n  \"IsProximal\" : true,\n  \"Types\" : \"HumanName\",\n  \"StartLine\" : 1,\n  \"StartColumn\" : 6\n}"
+      "valueString" : "{\n  \"Kind\" : \"Function\",\n  \"Function\" : \"trace\",\n  \"Parameters\" : [ {\n    \"Kind\" : \"Constant\",\n    \"Constant\" : \"trc\",\n    \"IsProximal\" : true,\n    \"Types\" : \"system.String\",\n    \"StartLine\" : 1,\n    \"StartColumn\" : 7\n  } ],\n  \"Inner\" : {\n    \"Kind\" : \"Name\",\n    \"Name\" : \"given\",\n    \"Inner\" : {\n      \"Kind\" : \"Function\",\n      \"Function\" : \"join\",\n      \"Parameters\" : [ {\n        \"Kind\" : \"Constant\",\n        \"Constant\" : \" \",\n        \"IsProximal\" : true,\n        \"Types\" : \"system.String\",\n        \"StartLine\" : 1,\n        \"StartColumn\" : 25\n      } ],\n      \"Inner\" : {\n        \"Kind\" : \"Function\",\n        \"Function\" : \"combine\",\n        \"Parameters\" : [ {\n          \"Kind\" : \"Name\",\n          \"Name\" : \"family\",\n          \"IsProximal\" : true,\n          \"Types\" : \"string\",\n          \"StartLine\" : 2,\n          \"StartColumn\" : 11\n        } ],\n        \"Inner\" : {\n          \"Kind\" : \"Function\",\n          \"Function\" : \"join\",\n          \"Parameters\" : [ {\n            \"Kind\" : \"Constant\",\n            \"Constant\" : \", \",\n            \"IsProximal\" : true,\n            \"Types\" : \"system.String\",\n            \"StartLine\" : 2,\n            \"StartColumn\" : 24\n          } ],\n          \"IsProximal\" : false,\n          \"Types\" : \"system.String\",\n          \"StartLine\" : 2,\n          \"StartColumn\" : 19\n        },\n        \"IsProximal\" : false,\n        \"Types\" : \"string[], system.String[]\",\n        \"StartLine\" : 2,\n        \"StartColumn\" : 3\n      },\n      \"IsProximal\" : false,\n      \"Types\" : \"system.String\",\n      \"StartLine\" : 1,\n      \"StartColumn\" : 20\n    },\n    \"IsProximal\" : false,\n    \"Types\" : \"string[]\",\n    \"StartLine\" : 1,\n    \"StartColumn\" : 14\n  },\n  \"IsProximal\" : true,\n  \"Types\" : \"HumanName\",\n  \"StartLine\" : 1,\n  \"StartColumn\" : 1\n}"
     }]
   },
   {
     "name" : "result",
-    "valueString" : "name[0]",
+    "valueString" : "Patient.name[0]",
     "part" : [{
       "name" : "trace",
       "valueString" : "trc",
       "part" : [{
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0]"
+        }],
         "name" : "HumanName",
         "valueHumanName" : {
           "use" : "official",
@@ -47,11 +51,15 @@
   },
   {
     "name" : "result",
-    "valueString" : "name[1]",
+    "valueString" : "Patient.name[1]",
     "part" : [{
       "name" : "trace",
       "valueString" : "trc",
       "part" : [{
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[1]"
+        }],
         "name" : "HumanName",
         "valueHumanName" : {
           "use" : "usual",
@@ -66,11 +74,15 @@
   },
   {
     "name" : "result",
-    "valueString" : "name[2]",
+    "valueString" : "Patient.name[2]",
     "part" : [{
       "name" : "trace",
       "valueString" : "trc",
       "part" : [{
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2]"
+        }],
         "name" : "HumanName",
         "valueHumanName" : {
           "use" : "maiden",
