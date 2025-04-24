@@ -116,7 +116,7 @@ public class FhirpathTestController {
                 if (parametersR5.getParameter("resource") != null)
                     resource = getResourceR5(contextFactory.getContextR5(), parametersR5.getParameter("resource"));
 
-                var responseParameters = evaluate(contextFactory.getContextR5(), resource, contextExpression, expression, variables);
+                var responseParameters = evaluate("R5", contextFactory.getContextR5(), resource, contextExpression, expression, variables);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -201,7 +201,7 @@ public class FhirpathTestController {
                 if (parameters.getParameter("resource") != null)
                     resource = getResource(contextFactory.getContextR4bAsR5(), parameters.getParameter("resource"));
 
-                var responseParameters = evaluate(contextFactory.getContextR4bAsR5(), resource, contextExpression, expression, variables);
+                var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource, contextExpression, expression, variables);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -453,13 +453,13 @@ public class FhirpathTestController {
         return contextOutputs;
     }
 
-    public Parameters evaluate(org.hl7.fhir.r5.context.SimpleWorkerContext context, org.hl7.fhir.r5.elementmodel.Element resource, String contextExpression,
+    public Parameters evaluate(String testEngineVersion, org.hl7.fhir.r5.context.SimpleWorkerContext context, org.hl7.fhir.r5.elementmodel.Element resource, String contextExpression,
             String expression,
             Parameters.ParametersParameterComponent variables) throws IOException {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.19 (r4b)");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.19 ("+testEngineVersion+")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
 

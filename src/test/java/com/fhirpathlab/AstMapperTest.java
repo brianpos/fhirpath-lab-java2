@@ -14,8 +14,10 @@ import com.fhirpathlab.utils.SimplifiedExpressionNode;
 import com.google.common.io.Files;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.hl7.fhir.r4b.formats.JsonParser;
 import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.DateType;
 import org.hl7.fhir.r4b.model.Parameters;
@@ -24,8 +26,10 @@ import org.hl7.fhir.r4b.model.Patient;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 class AstMapperTest {
     AstMapperTest() throws IOException {
@@ -232,8 +236,15 @@ class AstMapperTest {
         patientExample.setId("example");
         patientExample.addName().addGiven("John").addGiven("Doe").setFamily("Smith");
         patientExample.addName().addGiven("Johnny").addGiven("Doe");
+        JsonParser jsonParser = new JsonParser();
+        var json = jsonParser.composeString(patientExample);
+        InputStream inputStream = new ByteArrayInputStream(
+                json.getBytes(StandardCharsets.UTF_8));
 
-        var result = controller.evaluate(patientExample, null, "{}.join(',')", null);
+        var rawJsonParser = new org.hl7.fhir.r5.elementmodel.JsonParser(contextFactory.getContextR4bAsR5());
+        var fragments = rawJsonParser.parse(inputStream);
+
+        var result = controller.evaluate("R4B", contextFactory.getContextR4bAsR5(), fragments.get(0).getElement(), null, "{}.join(',')", null);
 
         // locate the actual result part of the parameters
         var parameters = (Parameters) result;
