@@ -189,7 +189,17 @@ public class FhirpathTestController {
             }
 
             // Parse the input content into a Patient resource
-            var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
+            org.hl7.fhir.r4b.model.Parameters parameters = null;
+            try {
+                parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
+            } catch (IOException e) {
+                logger.error("Error parsing resource: " + e.getMessage(), e);
+                outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                        .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                        .setDetails(new CodeableConcept().setText(e.getMessage()));
+                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+            }
+
             String contextExpression = null;
             if (parameters.getParameterValue("context") != null)
                 contextExpression = parameters.getParameterValue("context").primitiveValue();
