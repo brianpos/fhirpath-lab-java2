@@ -103,8 +103,10 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
         // jsonNode.uniqueId = node.getUniqueId();
-        jsonNode.startLine = node.getStart().getLine();
-        jsonNode.startColumn = node.getStart().getColumn();
+        if (node.getStart() != null) {
+            jsonNode.startLine = node.getStart().getLine();
+            jsonNode.startColumn = node.getStart().getColumn();
+        }
         if (node.getOpStart() != null) {
             jsonNode.startOpLine = node.getOpStart().getLine();
             jsonNode.startOpColumn = node.getOpStart().getColumn();
@@ -173,8 +175,10 @@ public class SimplifiedExpressionNode implements ISimplifiedExpressionNode {
             return null;
         SimplifiedExpressionNode jsonNode = new SimplifiedExpressionNode();
         // jsonNode.uniqueId = node.getUniqueId();
-        jsonNode.startLine = node.getStart().getLine();
-        jsonNode.startColumn = node.getStart().getColumn();
+        if (node.getStart() != null) {
+            jsonNode.startLine = node.getStart().getLine();
+            jsonNode.startColumn = node.getStart().getColumn();
+        }
         if (node.getOpStart() != null) {
             jsonNode.startOpLine = node.getOpStart().getLine();
             jsonNode.startOpColumn = node.getOpStart().getColumn();
