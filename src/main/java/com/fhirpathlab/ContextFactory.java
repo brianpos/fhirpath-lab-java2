@@ -25,8 +25,10 @@ public class ContextFactory {
   }
 
   private org.hl7.fhir.r4b.context.SimpleWorkerContext contextR4b;
+  private org.hl7.fhir.r5.context.SimpleWorkerContext contextR4basR5;
   private org.hl7.fhir.r5.context.SimpleWorkerContext contextR5;
   private NpmPackage r4NpmPackage;
+  private NpmPackage r5NpmPackage;
 
   private NpmPackage getNpmPackageR4() throws FHIRException, IOException {
     if (r4NpmPackage == null) {
@@ -35,6 +37,15 @@ public class ContextFactory {
       r4NpmPackage = pkgMgr.loadPackage("hl7.fhir.r4b.core", "4.3.0");
     }
     return r4NpmPackage;
+  }
+
+  private NpmPackage getNpmPackageR5() throws FHIRException, IOException {
+    if (r5NpmPackage == null) {
+      var pkgMgr = new FilesystemPackageCacheManager.Builder().build();
+      pkgMgr.setMinimalMemory(true);
+      r5NpmPackage = pkgMgr.loadPackage("hl7.fhir.r5.core", "5.0.0");
+    }
+    return r5NpmPackage;
   }
 
   public org.hl7.fhir.r4b.context.SimpleWorkerContext getContextR4b() throws FHIRException, IOException {
@@ -50,11 +61,24 @@ public class ContextFactory {
     return contextR4b;
   }
 
+  public org.hl7.fhir.r5.context.SimpleWorkerContext getContextR4bAsR5() throws FHIRException, IOException {
+    if (contextR4basR5 == null) {
+      var context = new FhirpathLabSimpleWorkerContextR5();
+      context.setProgress(true);
+      var pkg = getNpmPackageR4();
+      context.loadFromPackage(pkg, new R5ContextLoader());
+      context.unloadBinaries();
+      contextR4basR5 = context;
+      r4NpmPackage = null; // release the memory
+    }
+    return contextR4basR5;
+  }
+
   public org.hl7.fhir.r5.context.SimpleWorkerContext getContextR5() throws FHIRException, IOException {
     if (contextR5 == null) {
       var context = new FhirpathLabSimpleWorkerContextR5();
       context.setProgress(true);
-      var pkg = getNpmPackageR4();
+      var pkg = getNpmPackageR5();
       context.loadFromPackage(pkg, new R5ContextLoader());
       context.unloadBinaries();
       contextR5 = context;
