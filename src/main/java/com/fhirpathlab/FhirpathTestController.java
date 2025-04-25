@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fhirpathlab.utils.AstMapper;
 import com.fhirpathlab.utils.JsonNode;
-import com.fhirpathlab.utils.LogicalModelBuilder;
 import com.fhirpathlab.utils.ParamUtils;
 import com.fhirpathlab.utils.SimplifiedExpressionNode;
 
@@ -370,8 +369,6 @@ public class FhirpathTestController {
                         // this is not currently supported...
                         var variableText = part.getExtensionByUrl(
                                 "http://fhir.forms-lab.com/StructureDefinition/json-value").getValue().primitiveValue();
-                        var sd = LogicalModelBuilder.build(variableText, part.getName(), null);
-                        // services.context.cacheResource(sd);
 
                         InputStream inputStream = new ByteArrayInputStream(
                                 variableText.getBytes(StandardCharsets.UTF_8));
@@ -492,8 +489,8 @@ public class FhirpathTestController {
                 ParamUtils.add(paramsPart, "resource", resourceR4);
             } else {
                 var part = ParamUtils.add(paramsPart, "resource");
-                    part.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
-                            new StringType(jsonResource));
+                part.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
+                        new StringType(jsonResource));
             }
         } catch (IOException e) {
 
