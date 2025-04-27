@@ -17,3 +17,7 @@ target/
 
 # Spring Boot generated files
 spring-boot-starter-*.jar
+
+src/test/test-data/*.hapi2.json
+src/test/test-data/*.lab2.json
+src/test/data/simple.response.actual.json

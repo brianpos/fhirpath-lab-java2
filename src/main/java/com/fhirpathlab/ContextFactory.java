@@ -3,9 +3,11 @@ package com.fhirpathlab;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.IContextResourceLoader;
+import org.hl7.fhir.r5.context.SimpleWorkerContext.PackageResourceLoader;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.Resource;
@@ -131,8 +133,8 @@ class R5ContextLoader implements org.hl7.fhir.r5.context.IContextResourceLoader 
   org.hl7.fhir.r5.formats.XmlParser xmlParser = new org.hl7.fhir.r5.formats.XmlParser();
 
   @Override
-  public List<String> getTypes() {
-    return org.hl7.fhir.utilities.Utilities.strings("ConceptMap", "StructureDefinition", "StructureMap");
+  public Set<String> getTypes() {
+    return Set.of("ConceptMap", "StructureDefinition", "StructureMap");
   }
 
   @Override
@@ -185,6 +187,16 @@ class R5ContextLoader implements org.hl7.fhir.r5.context.IContextResourceLoader 
   @Override
   public boolean wantLoad(NpmPackage pi, PackageResourceInformation pri) {
     return true;
+  }
+
+  @Override
+  public PackageResourceLoader editInfo(PackageResourceLoader loader) {
+    return loader;
+  }
+
+  @Override
+  public Set<String> reviewActualTypes(Set<String> types) {
+    return types;
   }
 
 }

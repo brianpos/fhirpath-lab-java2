@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 27 aPRIL 2025
+* Update to org.hl7.fhir v6.5.20
+
 ### 22 April 2025
 * Update to org.hl7.fhir v6.5.19
 * Pass through the line numbering information from the expression (as is now mostly fixed in the updated version of the library)
