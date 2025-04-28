@@ -148,6 +148,8 @@ public class ParamUtils {
                 result.addExtension("http://fhir.forms-lab.com/StructureDefinition/json-value",
                         new StringType(extensionJson));
 
+            } else if (em.fhirType().equalsIgnoreCase("xhtml")) {
+                result.setValue(new StringType(em.getValue()));
             } else if (em.isPrimitive()) {
                 var dt = convertToType(em);
                 var r4dt = converDataType(dt);
