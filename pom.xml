@@ -9,7 +9,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <hapifhir.version>6.5.20</hapifhir.version>
+    <hapifhir.version>6.5.22</hapifhir.version>
   </properties>
 
   <parent>

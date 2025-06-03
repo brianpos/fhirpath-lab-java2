@@ -134,7 +134,7 @@ class R5ContextLoader implements org.hl7.fhir.r5.context.IContextResourceLoader 
 
   @Override
   public Set<String> getTypes() {
-    return Set.of("ConceptMap", "StructureDefinition", "StructureMap");
+    return org.hl7.fhir.utilities.Utilities.stringSet("ConceptMap", "StructureDefinition", "StructureMap");
   }
 
   @Override
