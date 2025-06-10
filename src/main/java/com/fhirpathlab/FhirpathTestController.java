@@ -33,6 +33,7 @@ import org.hl7.fhir.r5.elementmodel.ValidatedFragment;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode;
 import org.hl7.fhir.r5.fhirpath.FHIRLexer.FHIRLexerException;
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
+import org.hl7.fhir.r5.fhirpath.ExpressionNode.Function;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
@@ -111,13 +112,17 @@ public class FhirpathTestController {
                 expression = parameters.getParameterValue("expression").primitiveValue();
             Parameters.ParametersParameterComponent variables = parameters.getParameter("variables");
 
+            boolean debugTrace = false;
+            if (parameters.getParameterValue("debug_trace") != null)
+                debugTrace = parameters.getParameterBool("debugTrace");
+
             if (isNotBlank(expression)) {
                 org.hl7.fhir.r5.elementmodel.Element resource = null;
                 if (parametersR5.getParameter("resource") != null)
                     resource = getResourceR5(contextFactory.getContextR5(), parametersR5.getParameter("resource"));
 
                 var responseParameters = evaluate("R5", contextFactory.getContextR5(), resource, contextExpression,
-                        expression, variables);
+                        expression, variables, debugTrace);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -207,13 +212,17 @@ public class FhirpathTestController {
                 expression = parameters.getParameterValue("expression").primitiveValue();
             Parameters.ParametersParameterComponent variables = parameters.getParameter("variables");
 
+            boolean debugTrace = false;
+            if (parameters.getParameterValue("debug_trace") != null)
+                debugTrace = parameters.getParameterBool("debug_trace");
+
             if (isNotBlank(expression)) {
                 org.hl7.fhir.r5.elementmodel.Element resource = null;
                 if (parameters.getParameter("resource") != null)
                     resource = getResource(contextFactory.getContextR4bAsR5(), parameters.getParameter("resource"));
 
                 var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource,
-                        contextExpression, expression, variables);
+                        contextExpression, expression, variables, debugTrace);
                 return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
             }
 
@@ -403,8 +412,8 @@ public class FhirpathTestController {
         }
     }
 
-    private void generateParseTree(String resourceType, String contextExpression, String expression,
-            ParametersParameterComponent paramsPart, FHIRPathEngine engine,
+    private ExpressionNode generateParseTree(String resourceType, String contextExpression, String expression,
+            ParametersParameterComponent paramsPart, FHIRPathEngine engine, boolean debugTrace,
             org.hl7.fhir.r4b.model.OperationOutcome outcome) {
         try {
             org.hl7.fhir.r5.fhirpath.ExpressionNode parseTree;
@@ -444,9 +453,95 @@ public class FhirpathTestController {
             String jsonAstTree2 = objectMapper.writeValueAsString(simplifiedAST).replace("\r", "");
             ParamUtils.add(paramsPart, "parseDebugTreeJava", jsonAstTree2);
 
+            // Now inject the debug_trace function into all the nodes
+            if (debugTrace){
+                parseTree = InjectDebugTrace(expression.split("\n"), parseTree);
+                logger.info("Parse tree generated: " + parseTree.toString());
+            }
+
+            return parseTree;
+
         } catch (IOException ex) {
             logger.error("Error generating parse tree: ", ex);
+            return null;
         }
+    }
+
+    private ExpressionNode InjectDebugTrace(String[] lines, ExpressionNode parseTree) {
+        if (parseTree == null)
+            return null;
+
+        var inner = TagExpression(lines, parseTree);
+
+        // walk through the parse tree and inject the debug_trace function
+        InjectDebugTrace(lines, parseTree.getOpNext());
+        InjectDebugTrace(lines, inner);
+        InjectDebugTrace(lines, parseTree.getGroup());
+
+        var params = parseTree.getParameters();
+        if (params != null) {
+            for (int index = 0; index < params.size(); index++) {
+                InjectDebugTrace(lines, params.get(index));
+            }
+        }
+        return parseTree;
+    }
+
+    private ExpressionNode AxisExpression(String name) {
+        var axis = new ExpressionNode(0);
+        axis.setKind(ExpressionNode.Kind.Name);
+        axis.setName(name);
+        return axis;
+    }
+
+    private String getDebugTraceName(String[] lines, ExpressionNode node) {
+        // compute the position and length of the node in the string using the data from
+        // the getStart() method
+        if (node.getStart() == null || node.getEnd() == null) {
+            return "0,0,unknown";
+        }
+        int startPosition = node.getStart().getColumn()-1;
+        int line = node.getStart().getLine() - 1;
+        while (line > 0)
+            startPosition += lines[--line].length() + 1; // +1 for the newline character
+
+        // evaluate the length using the getEnd() method
+        int nodeLength = node.getEnd().getColumn()-1;
+        line = node.getEnd().getLine() - 1;
+        do {
+            if (node.getStart().getLine() - 1 == line) {
+                nodeLength -= node.getStart().getColumn()-1;
+            } else {
+                nodeLength += lines[line].length() + 1; // +1 for the newline character
+            }
+            line--;
+        } while (node.getStart().getLine() < line);
+
+        return String.format("%d,%d,%s", startPosition, nodeLength, node.getName());
+    }
+
+    private ExpressionNode TagExpression(String[] lines, ExpressionNode node) {
+        if (node == null)
+            return null;
+        if (node.getFunction() == Function.Custom || node.getStart() == null)
+            return node.getInner();
+
+        var inner = node.getInner();
+        ExpressionNode debugNode = new ExpressionNode(0);
+        debugNode.setKind(ExpressionNode.Kind.Function);
+        debugNode.setFunction(ExpressionNode.Function.Custom);
+        debugNode.setName("debug_trace");
+        debugNode.setInner(inner);
+        node.setInner(debugNode);
+
+        ExpressionNode constExpressionNode = new ExpressionNode(0);
+        constExpressionNode.setKind(ExpressionNode.Kind.Constant);
+        constExpressionNode.setConstant(new org.hl7.fhir.r5.model.StringType(getDebugTraceName(lines, node)));
+        debugNode.getParameters().add(constExpressionNode);
+        debugNode.getParameters().add(AxisExpression("$this")); // $this
+        debugNode.getParameters().add(AxisExpression("$index")); // $index
+
+        return inner;
     }
 
     private List<Base> evaluateContexts(String contextExpression, org.hl7.fhir.r5.elementmodel.Element sourceResource,
@@ -469,11 +564,12 @@ public class FhirpathTestController {
     public Parameters evaluate(String testEngineVersion, org.hl7.fhir.r5.context.SimpleWorkerContext context,
             org.hl7.fhir.r5.elementmodel.Element resource, String contextExpression,
             String expression,
-            Parameters.ParametersParameterComponent variables) throws IOException {
+            Parameters.ParametersParameterComponent variables,
+            boolean debugTrace) throws IOException {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.22 (" + testEngineVersion + ")");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.24 (" + testEngineVersion + ")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
 
@@ -515,7 +611,8 @@ public class FhirpathTestController {
             if (firstElement != null)
                 pathBasedContextExpression = firstElement.getPath().replaceAll("\\[[0-9]+\\]", "");
         }
-        generateParseTree(resource.fhirType(), pathBasedContextExpression, expression, paramsPart, engine,
+        var parsedExpression = generateParseTree(resource.fhirType(), pathBasedContextExpression, expression,
+                paramsPart, engine, debugTrace,
                 outcome);
         if (outcome.hasIssue()) {
             var oucomePart = paramsPart.addPart();
@@ -523,21 +620,27 @@ public class FhirpathTestController {
             oucomePart.setResource(outcome);
         }
 
-        processEvaluationResults(context, responseParameters, contextExpression, expression, engine, services,
-                resource, contextOutputs);
+        processEvaluationResults(context, responseParameters, contextExpression, parsedExpression, engine, services,
+                resource, contextOutputs, debugTrace);
         return responseParameters;
     }
 
     private void processEvaluationResults(org.hl7.fhir.r5.context.IWorkerContext context,
-            Parameters responseParameters, String contextExpression, String expression,
+            Parameters responseParameters, String contextExpression, ExpressionNode expression,
             FHIRPathEngine engine, FHIRPathTestEvaluationServicesR5 services,
-            org.hl7.fhir.r5.elementmodel.Element sourceResource, List<Base> contextOutputs) {
+            org.hl7.fhir.r5.elementmodel.Element sourceResource, List<Base> contextOutputs, boolean debugTrace) {
         var oc = new org.hl7.fhir.r5.elementmodel.ObjectConverter(context);
 
         for (int i = 0; i < contextOutputs.size(); i++) {
             org.hl7.fhir.r5.model.Base node = contextOutputs.get(i);
             var resultPart = ParamUtils.add(responseParameters, "result");
             services.setTraceToParameter(resultPart);
+
+            if (debugTrace) {
+                var debugTracePart = ParamUtils.add(responseParameters, "debug-trace");
+                services.setDebugTraceToParameter(debugTracePart);
+            }
+
             if (contextExpression != null)
                 if (node instanceof org.hl7.fhir.r5.elementmodel.Element) {
                     var em = (org.hl7.fhir.r5.elementmodel.Element) node;
@@ -551,8 +654,8 @@ public class FhirpathTestController {
 
             List<org.hl7.fhir.r5.model.Base> outputs;
             try {
-                ExpressionNode exp = engine.parse(expression);
-                outputs = engine.evaluate(null, sourceResource, sourceResource, node, exp);
+                // ExpressionNode exp = engine.parse(expression);
+                outputs = engine.evaluate(null, sourceResource, sourceResource, node, expression);
             } catch (FhirPathExecutionException e) {
                 throw new InvalidRequestException(
                         Msg.code(327) + "Error parsing FHIRPath expression: " + e.getMessage());

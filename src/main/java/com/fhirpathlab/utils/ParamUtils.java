@@ -115,6 +115,14 @@ public class ParamUtils {
             org.hl7.fhir.r5.elementmodel.ObjectConverter oc,
             Parameters.ParametersParameterComponent theParameter,
             org.hl7.fhir.r5.elementmodel.Element em) {
+        return addTypedElement(context, oc, theParameter, em, false);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static ParametersParameterComponent addTypedElement(IWorkerContext context,
+            org.hl7.fhir.r5.elementmodel.ObjectConverter oc,
+            Parameters.ParametersParameterComponent theParameter,
+            org.hl7.fhir.r5.elementmodel.Element em, boolean skipValueIfHasResourcePath) {
         var result = theParameter.addPart();
         result.setName(em.fhirType());
 
@@ -125,8 +133,17 @@ public class ParamUtils {
             var jsonText = stream.toString();
 
             if (em.getPath() != null) {
+                var pathValue = new StringType(em.getPath().replace("[x]", ""));
+                if (em.hasIndex() && em.getIndex() >= 0 && !pathValue.getValue().endsWith("]")) {
+                    pathValue.setValue(String.format("%s[%d]", pathValue.getValue(), em.getIndex()));
+                }
+                if (skipValueIfHasResourcePath) {
+                    result.setName("resource-path");
+                    result.setValue(pathValue);
+                    return result;
+                }
                 result.addExtension("http://fhir.forms-lab.com/StructureDefinition/resource-path",
-                        new StringType(em.getPath().replace("[x]", "")));
+                        pathValue);
             }
             if (em.isResource()) {
                 // if this is an R4 resource, we can put it into the object model

@@ -244,7 +244,7 @@ class AstMapperTest {
         var rawJsonParser = new org.hl7.fhir.r5.elementmodel.JsonParser(contextFactory.getContextR4bAsR5());
         var fragments = rawJsonParser.parse(inputStream);
 
-        var result = controller.evaluate("R4B", contextFactory.getContextR4bAsR5(), fragments.get(0).getElement(), null, "{}.join(',')", null);
+        var result = controller.evaluate("R4B", contextFactory.getContextR4bAsR5(), fragments.get(0).getElement(), null, "{}.join(',')", null, false);
 
         // locate the actual result part of the parameters
         var parameters = (Parameters) result;

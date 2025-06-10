@@ -24,6 +24,7 @@ import org.hl7.fhir.exceptions.PathEngineException;
 
 public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
     private Parameters.ParametersParameterComponent traceToParameter;
+    private Parameters.ParametersParameterComponent debugTraceToParameter;
     private java.util.HashMap<String, org.hl7.fhir.r5.model.Base> mapVariables;
     IWorkerContext context;
     ObjectConverter oc;
@@ -40,6 +41,10 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
 
     public void setTraceToParameter(Parameters.ParametersParameterComponent theTraceToParameter) {
         traceToParameter = theTraceToParameter;
+    }
+
+    public void setDebugTraceToParameter(Parameters.ParametersParameterComponent theDebugTraceToParameter) {
+        debugTraceToParameter = theDebugTraceToParameter;
     }
 
     public void addVariable(String name, org.hl7.fhir.r5.model.Base value) {
@@ -112,19 +117,68 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
 
     @Override
     public FunctionDetails resolveFunction(FHIRPathEngine engine, String functionName) {
+        if (functionName.compareToIgnoreCase("debug_trace") == 0) {
+            return new FunctionDetails("debug_trace", 2, 3);
+        }
         throw new UnsupportedOperationException("Unimplemented method 'resolveFunction'");
     }
 
     @Override
     public TypeDetails checkFunction(FHIRPathEngine engine, Object appContext, String functionName, TypeDetails focus,
             List<TypeDetails> parameters) throws PathEngineException {
+        if (functionName.compareToIgnoreCase("debug_trace") == 0) {
+            return focus;
+        }
         throw new UnsupportedOperationException("Unimplemented method 'checkFunction'");
     }
 
     @Override
     public List<Base> executeFunction(FHIRPathEngine engine, Object appContext, List<Base> focus, String functionName,
             List<List<Base>> parameters) {
-        throw new UnsupportedOperationException("Unimplemented method 'executeFunction'");
+        if (functionName.compareToIgnoreCase("debug_trace") == 0) {
+
+            // parameter 1 is the name/location of the function
+            // parameter 2 is $this
+            // parameter 3 is $index (if present)
+            if (debugTraceToParameter != null) {
+                Parameters.ParametersParameterComponent traceValue = ParamUtils.add(debugTraceToParameter,
+                        parameters.get(0).get(0).toString());
+
+                for (org.hl7.fhir.r5.model.Base nextOutput : focus) {
+                    if (nextOutput instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                        var em = (org.hl7.fhir.r5.elementmodel.Element) nextOutput;
+                        ParamUtils.addTypedElement(context, oc, traceValue, em, true);
+                    } else if (nextOutput instanceof org.hl7.fhir.r5.model.DataType) {
+                        var dt = (org.hl7.fhir.r5.model.DataType) nextOutput;
+                        ParamUtils.add(traceValue, dt.fhirType(), dt);
+                    }
+                }
+
+                for (org.hl7.fhir.r5.model.Base nextOutput : parameters.get(1)) {
+                    if (nextOutput instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                        var em = (org.hl7.fhir.r5.elementmodel.Element) nextOutput;
+                        var p = ParamUtils.addTypedElement(context, oc, traceValue, em, true);
+                        p.setName("this-" + p.getName());
+                    } else if (nextOutput instanceof org.hl7.fhir.r5.model.DataType) {
+                        var dt = (org.hl7.fhir.r5.model.DataType) nextOutput;
+                        var p = ParamUtils.add(traceValue, dt.fhirType(), dt);
+                        p.setName("this-" + p.getName());
+                    }
+                }
+
+                if (parameters.size() > 2) {
+                    var index = parameters.get(2).get(0);
+                    var p = new Parameters.ParametersParameterComponent()
+                            .setName("index");
+                    Integer rawIndex = ((org.hl7.fhir.r5.model.IntegerType) index).getValue();
+                    p.setValue(new org.hl7.fhir.r4b.model.IntegerType(rawIndex));
+                    traceValue.addPart(p);
+                }
+            }
+
+            return focus;
+        }
+        throw new UnsupportedOperationException("Unimplemented method 'executeFunction' " + functionName);
     }
 
     @Override
@@ -150,6 +204,10 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
 
     @Override
     public boolean paramIsType(String name, int index) {
+        if (name.compareToIgnoreCase("debug_trace") == 0) {
+            return false;
+        }
+
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'paramIsType'");
     }
