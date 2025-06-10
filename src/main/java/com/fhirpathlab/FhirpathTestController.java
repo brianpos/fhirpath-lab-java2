@@ -517,7 +517,7 @@ public class FhirpathTestController {
             line--;
         } while (node.getStart().getLine() < line);
 
-        return String.format("%d,%d,%s", startPosition, nodeLength, node.getName());
+        return String.format("%d,%d,%s", startPosition, nodeLength, node.getKind() == ExpressionNode.Kind.Constant ? "constant" : node.getName());
     }
 
     private ExpressionNode TagExpression(String[] lines, ExpressionNode node) {
