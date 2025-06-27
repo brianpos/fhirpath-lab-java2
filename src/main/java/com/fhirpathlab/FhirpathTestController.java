@@ -627,10 +627,8 @@ public class FhirpathTestController {
             var resultPart = ParamUtils.add(responseParameters, "result");
             services.setTraceToParameter(resultPart);
 
-            if (debugTrace) {
-                var debugTracePart = ParamUtils.add(responseParameters, "debug-trace");
-                services.setDebugTraceToParameter(debugTracePart);
-            }
+            var debugTracePart = ParamUtils.add(responseParameters, "debug-trace");
+            services.setDebugTraceToParameter(debugTracePart);
 
             if (contextExpression != null)
                 if (node instanceof org.hl7.fhir.r5.elementmodel.Element) {
