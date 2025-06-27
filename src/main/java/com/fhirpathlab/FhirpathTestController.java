@@ -33,6 +33,7 @@ import org.hl7.fhir.r5.elementmodel.ValidatedFragment;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode;
 import org.hl7.fhir.r5.fhirpath.FHIRLexer.FHIRLexerException;
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
+import org.hl7.fhir.r5.fhirpath.FHIRPathEngine.ExecutionContext;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode.Function;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -412,7 +413,7 @@ public class FhirpathTestController {
         }
     }
 
-    private ExpressionNode generateParseTree(String resourceType, String contextExpression, String expression,
+    static public ExpressionNode generateParseTree(String resourceType, String contextExpression, String expression,
             ParametersParameterComponent paramsPart, FHIRPathEngine engine, boolean debugTrace,
             org.hl7.fhir.r4b.model.OperationOutcome outcome) {
         try {
@@ -454,8 +455,7 @@ public class FhirpathTestController {
             ParamUtils.add(paramsPart, "parseDebugTreeJava", jsonAstTree2);
 
             // Now inject the debug_trace function into all the nodes
-            if (debugTrace){
-                parseTree = InjectDebugTrace(expression.split("\n"), parseTree);
+            if (debugTrace) {
                 logger.info("Parse tree generated: " + parseTree.toString());
             }
 
@@ -467,82 +467,53 @@ public class FhirpathTestController {
         }
     }
 
-    private ExpressionNode InjectDebugTrace(String[] lines, ExpressionNode parseTree) {
-        if (parseTree == null)
-            return null;
-
-        var inner = TagExpression(lines, parseTree);
-
-        // walk through the parse tree and inject the debug_trace function
-        InjectDebugTrace(lines, parseTree.getOpNext());
-        InjectDebugTrace(lines, inner);
-        InjectDebugTrace(lines, parseTree.getGroup());
-
-        var params = parseTree.getParameters();
-        if (params != null) {
-            for (int index = 0; index < params.size(); index++) {
-                InjectDebugTrace(lines, params.get(index));
-            }
-        }
-        return parseTree;
-    }
-
-    private ExpressionNode AxisExpression(String name) {
-        var axis = new ExpressionNode(0);
-        axis.setKind(ExpressionNode.Kind.Name);
-        axis.setName(name);
-        return axis;
-    }
-
-    private String getDebugTraceName(String[] lines, ExpressionNode node) {
+    static public String getDebugTraceName(String[] lines, ExpressionNode node) {
         // compute the position and length of the node in the string using the data from
         // the getStart() method
         if (node.getStart() == null || node.getEnd() == null) {
             return "0,0,unknown";
         }
-        int startPosition = node.getStart().getColumn()-1;
+        int startPosition = node.getStart().getColumn() - 1;
         int line = node.getStart().getLine() - 1;
         while (line > 0)
             startPosition += lines[--line].length() + 1; // +1 for the newline character
 
         // evaluate the length using the getEnd() method
-        int nodeLength = node.getEnd().getColumn()-1;
+        int nodeLength = node.getEnd().getColumn() - 1;
         line = node.getEnd().getLine() - 1;
         do {
             if (node.getStart().getLine() - 1 == line) {
-                nodeLength -= node.getStart().getColumn()-1;
-            } else {
+                nodeLength -= node.getStart().getColumn() - 1;
+            } else if (line < lines.length) {
                 nodeLength += lines[line].length() + 1; // +1 for the newline character
             }
             line--;
         } while (node.getStart().getLine() < line);
 
-        return String.format("%d,%d,%s", startPosition, nodeLength, node.getKind() == ExpressionNode.Kind.Constant ? "constant" : node.getName());
+        if (node.getFunction() != null){
+            nodeLength = node.getFunction().toCode().length();
+        }
+        return String.format("%d,%d,%s", startPosition, nodeLength,
+                node.getKind() == ExpressionNode.Kind.Constant ? "constant" : node.getName());
     }
 
-    private ExpressionNode TagExpression(String[] lines, ExpressionNode node) {
-        if (node == null)
-            return null;
-        if (node.getFunction() == Function.Custom || node.getStart() == null)
-            return node.getInner();
+    static public String getDebugTraceOpName(String[] lines, ExpressionNode node) {
+        // compute the position and length of the node in the string using the data from
+        // the getStart() method
+        if (node.getOpStart() == null) {
+            return "0,0,unknown";
+        }
+        int startPosition = node.getOpStart().getColumn() - 1;
+        int line = node.getOpStart().getLine() - 1;
+        while (line > 0)
+            startPosition += lines[--line].length() + 1; // +1 for the newline character
 
-        var inner = node.getInner();
-        ExpressionNode debugNode = new ExpressionNode(0);
-        debugNode.setKind(ExpressionNode.Kind.Function);
-        debugNode.setFunction(ExpressionNode.Function.Custom);
-        debugNode.setName("debug_trace");
-        debugNode.setInner(inner);
-        node.setInner(debugNode);
+        // evaluate the length using the getEnd() method
+        int nodeLength = node.getOperation().toCode().length();
 
-        ExpressionNode constExpressionNode = new ExpressionNode(0);
-        constExpressionNode.setKind(ExpressionNode.Kind.Constant);
-        constExpressionNode.setConstant(new org.hl7.fhir.r5.model.StringType(getDebugTraceName(lines, node)));
-        debugNode.getParameters().add(constExpressionNode);
-        debugNode.getParameters().add(AxisExpression("$this")); // $this
-        debugNode.getParameters().add(AxisExpression("$index")); // $index
-
-        return inner;
+        return String.format("%d,%d,%s", startPosition, nodeLength, node.getOperation().toCode());
     }
+
 
     private List<Base> evaluateContexts(String contextExpression, org.hl7.fhir.r5.elementmodel.Element sourceResource,
             FHIRPathEngine engine) {
@@ -569,7 +540,7 @@ public class FhirpathTestController {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.24 (" + testEngineVersion + ")");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.27 (" + testEngineVersion + ")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
 
@@ -619,6 +590,26 @@ public class FhirpathTestController {
             oucomePart.setName("debugOutcome");
             oucomePart.setResource(outcome);
         }
+
+        var lines = expression.split("\n");
+        engine.setTracer(new FHIRPathDebugTracer() {
+            @Override
+            public void traceExpression(ExecutionContext context, List<Base> focus, List<Base> result,
+                    ExpressionNode exp) {
+                String exprNodeName = FhirpathTestController.getDebugTraceName(lines, exp);
+                services.traceExpression(lines, context, focus, result, exprNodeName);
+            }
+            @Override
+            public void traceOperationExpression(ExecutionContext context, List<Base> focus, List<Base> result,
+                    ExpressionNode exp) {
+                String exprNodeName;
+                if (exp.getOperation() != null)
+                    exprNodeName = FhirpathTestController.getDebugTraceOpName(lines, exp);
+                else
+                    exprNodeName = FhirpathTestController.getDebugTraceName(lines, exp);
+                services.traceExpression(lines, context, focus, result, exprNodeName);
+            }
+        });
 
         processEvaluationResults(context, responseParameters, contextExpression, parsedExpression, engine, services,
                 resource, contextOutputs, debugTrace);

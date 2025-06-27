@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.HashMap;
 
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
+import org.hl7.fhir.r5.fhirpath.FHIRPathEngine.ExecutionContext;
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine.IEvaluationContext;
 import org.hl7.fhir.r5.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r5.fhirpath.TypeDetails;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus;
 import org.hl7.fhir.r5.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r5.model.ValueSet;
 
 import com.fhirpathlab.utils.ParamUtils;
@@ -132,6 +132,58 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
         throw new UnsupportedOperationException("Unimplemented method 'checkFunction'");
     }
 
+    public void traceExpression(String[] lines, ExecutionContext context, List<Base> focus, List<Base> result,
+            String exprNodeName) {
+
+        if (debugTraceToParameter != null) {
+            Parameters.ParametersParameterComponent traceValue = ParamUtils.add(debugTraceToParameter, exprNodeName);
+
+            for (org.hl7.fhir.r5.model.Base nextOutput : result) {
+                if (nextOutput instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                    var em = (org.hl7.fhir.r5.elementmodel.Element) nextOutput;
+                    ParamUtils.addTypedElement(this.context, oc, traceValue, em, true);
+                } else if (nextOutput instanceof org.hl7.fhir.r5.model.DataType) {
+                    var dt = (org.hl7.fhir.r5.model.DataType) nextOutput;
+                    ParamUtils.add(traceValue, dt.fhirType(), dt);
+                }
+            }
+
+            {
+                org.hl7.fhir.r5.model.Base nextOutput = context.getThisItem();
+                if (nextOutput instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                    var em = (org.hl7.fhir.r5.elementmodel.Element) nextOutput;
+                    var p = ParamUtils.addTypedElement(this.context, oc, traceValue, em, true);
+                    p.setName("this-" + p.getName());
+                } else if (nextOutput instanceof org.hl7.fhir.r5.model.DataType) {
+                    var dt = (org.hl7.fhir.r5.model.DataType) nextOutput;
+                    var p = ParamUtils.add(traceValue, dt.fhirType(), dt);
+                    p.setName("this-" + p.getName());
+                }
+            }
+
+            for (org.hl7.fhir.r5.model.Base nextOutput : focus) {
+                if (nextOutput instanceof org.hl7.fhir.r5.elementmodel.Element) {
+                    var em = (org.hl7.fhir.r5.elementmodel.Element) nextOutput;
+                    var p = ParamUtils.addTypedElement(this.context, oc, traceValue, em, true);
+                    p.setName("focus-" + p.getName());
+                } else if (nextOutput instanceof org.hl7.fhir.r5.model.DataType) {
+                    var dt = (org.hl7.fhir.r5.model.DataType) nextOutput;
+                    var p = ParamUtils.add(traceValue, dt.fhirType(), dt);
+                    p.setName("focus-" + p.getName());
+                }
+            }
+
+            if (context.getIndex() != null) {
+                var index = context.getIndex();
+                var p = new Parameters.ParametersParameterComponent()
+                        .setName("index");
+                Integer rawIndex = ((org.hl7.fhir.r5.model.IntegerType) index).getValue();
+                p.setValue(new org.hl7.fhir.r4b.model.IntegerType(rawIndex));
+                traceValue.addPart(p);
+            }
+        }
+    }
+
     @Override
     public List<Base> executeFunction(FHIRPathEngine engine, Object appContext, List<Base> focus, String functionName,
             List<List<Base>> parameters) {
@@ -208,7 +260,6 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
             return false;
         }
 
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'paramIsType'");
     }
 }

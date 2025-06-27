@@ -2,6 +2,13 @@
 
 ## Changelog
 
+### 16 June 2025
+* New Debug Tracer for fhirpath evaluations!
+* Update to org.hl7.fhir v6.5.27
+
+### 16 June 2025
+* Update to org.hl7.fhir v6.5.26
+
 ### 10 June 2025
 * Update to org.hl7.fhir v6.5.24
 * POC debug tracer introduced
