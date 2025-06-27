@@ -180,6 +180,203 @@
     }]
   },
   {
+    "name" : "debug-trace",
+    "part" : [{
+      "name" : "6,5,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "trc"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "0,5,trace",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "13,5,given",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[0].given[0]"
+      },
+      {
+        "name" : "resource-path",
+        "valueString" : "Patient.name[0].given[1]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "24,3,constant",
+      "part" : [{
+        "name" : "string"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].given[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].given[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "19,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].given[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].given[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "38,6,family",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[0].family"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "30,7,combine",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "resource-path",
+        "valueString" : "Patient.name[0].family"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "51,4,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : ", "
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].family"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "46,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James, Chalmers"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[0]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0].family"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    }]
+  },
+  {
     "name" : "result",
     "valueString" : "Patient.name[1]",
     "part" : [{
@@ -200,6 +397,175 @@
     {
       "name" : "string",
       "valueString" : "Jim"
+    }]
+  },
+  {
+    "name" : "debug-trace",
+    "part" : [{
+      "name" : "6,5,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "trc"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "0,5,trace",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "13,5,given",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[1].given[0]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "24,3,constant",
+      "part" : [{
+        "name" : "string"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1].given[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "19,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1].given[0]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "38,6,family",
+      "part" : [{
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "30,7,combine",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "51,4,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : ", "
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "46,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[1]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Jim"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
     }]
   },
   {
@@ -228,6 +594,203 @@
     {
       "name" : "string",
       "valueString" : "Peter James, Windsor"
+    }]
+  },
+  {
+    "name" : "debug-trace",
+    "part" : [{
+      "name" : "6,5,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "trc"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "0,5,trace",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "13,5,given",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[2].given[0]"
+      },
+      {
+        "name" : "resource-path",
+        "valueString" : "Patient.name[2].given[1]"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "24,3,constant",
+      "part" : [{
+        "name" : "string"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].given[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].given[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "19,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].given[0]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].given[1]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "38,6,family",
+      "part" : [{
+        "name" : "resource-path",
+        "valueString" : "Patient.name[2].family"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "30,7,combine",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "resource-path",
+        "valueString" : "Patient.name[2].family"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "51,4,constant",
+      "part" : [{
+        "name" : "string",
+        "valueString" : ", "
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].family"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
+    },
+    {
+      "name" : "46,4,join",
+      "part" : [{
+        "name" : "string",
+        "valueString" : "Peter James, Windsor"
+      },
+      {
+        "name" : "this-resource-path",
+        "valueString" : "Patient.name[2]"
+      },
+      {
+        "name" : "focus-string",
+        "valueString" : "Peter James"
+      },
+      {
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2].family"
+      },
+      {
+        "name" : "index",
+        "valueInteger" : 0
+      }]
     }]
   }]
 }
