@@ -53,8 +53,13 @@ public class ParamUtils {
         if (theValue.isPrimitive()) {
             var np = new Factory().create(theValue.fhirType());
             if (np instanceof org.hl7.fhir.r4b.model.PrimitiveType) {
-                ((org.hl7.fhir.r4b.model.PrimitiveType) np)
-                        .setValueAsString(((org.hl7.fhir.r5.model.PrimitiveType) theValue).asStringValue());
+                try {
+                    ((org.hl7.fhir.r4b.model.PrimitiveType) np)
+                            .setValueAsString(((org.hl7.fhir.r5.model.PrimitiveType) theValue).asStringValue());
+                } catch (ca.uhn.fhir.parser.DataFormatException fe){
+                    // Just put it into a string
+                    np = new StringType(((org.hl7.fhir.r5.model.PrimitiveType) theValue).asStringValue());
+                }
                 result = np;
             }
             if (theValue.hasExtension()) {

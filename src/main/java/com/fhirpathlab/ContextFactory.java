@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
+import org.fhir.ucum.UcumEssenceService;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.IContextResourceLoader;
 import org.hl7.fhir.r5.context.SimpleWorkerContext.PackageResourceLoader;
@@ -29,6 +30,7 @@ public class ContextFactory {
   private org.hl7.fhir.r4b.context.SimpleWorkerContext contextR4b;
   private org.hl7.fhir.r5.context.SimpleWorkerContext contextR4basR5;
   private org.hl7.fhir.r5.context.SimpleWorkerContext contextR5;
+  private UcumEssenceService ucumService;
   private NpmPackage r4NpmPackage;
   private NpmPackage r5NpmPackage;
 
@@ -63,6 +65,19 @@ public class ContextFactory {
     return contextR4b;
   }
 
+  private UcumEssenceService getUcumService() {
+    if (ucumService == null) {
+      // read the UCUM essence file `ucum-essence.xml` from the project resources 
+      InputStream ucumStream = ContextFactory.class.getResourceAsStream("/ucum-essence.xml");
+      try {
+        ucumService = new UcumEssenceService(ucumStream);
+      } catch (Exception e) {
+        ucumService = null;
+      }
+    }
+    return ucumService;
+  }
+
   public org.hl7.fhir.r5.context.SimpleWorkerContext getContextR4bAsR5() throws FHIRException, IOException {
     if (contextR4basR5 == null) {
       var context = new FhirpathLabSimpleWorkerContextR5();
@@ -72,6 +87,7 @@ public class ContextFactory {
       context.unloadBinaries();
       contextR4basR5 = context;
       r4NpmPackage = null; // release the memory
+      context.setUcumService(getUcumService());
     }
     return contextR4basR5;
   }
@@ -85,6 +101,7 @@ public class ContextFactory {
       context.unloadBinaries();
       contextR5 = context;
       r4NpmPackage = null; // release the memory
+      context.setUcumService(getUcumService());
     }
     return contextR5;
   }

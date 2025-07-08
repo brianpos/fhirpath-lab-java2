@@ -416,8 +416,8 @@ public class FhirpathTestController {
     static public ExpressionNode generateParseTree(String resourceType, String contextExpression, String expression,
             ParametersParameterComponent paramsPart, FHIRPathEngine engine, boolean debugTrace,
             org.hl7.fhir.r4b.model.OperationOutcome outcome) {
+        org.hl7.fhir.r5.fhirpath.ExpressionNode parseTree = null;
         try {
-            org.hl7.fhir.r5.fhirpath.ExpressionNode parseTree;
             parseTree = engine.parse(expression);
 
             // Also check the expression tree so that it decudes any errrors, and marks up
@@ -463,7 +463,7 @@ public class FhirpathTestController {
 
         } catch (IOException ex) {
             logger.error("Error generating parse tree: ", ex);
-            return null;
+            return parseTree;
         }
     }
 
@@ -564,6 +564,7 @@ public class FhirpathTestController {
         }
 
         var engine = new org.hl7.fhir.r5.fhirpath.FHIRPathEngine(context);
+        engine.setAllowPolymorphicNames(false);
 
         FHIRPathTestEvaluationServicesR5 services = new FHIRPathTestEvaluationServicesR5(context);
         engine.setHostServices(services);
