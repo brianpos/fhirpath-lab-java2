@@ -3,7 +3,7 @@
     "parameter": [
         {
             "name": "expression",
-            "valueString": "trace('trc').given.join(' ')\n.combine(family).join(', ')"
+            "valueString": "trace('trc').given.join(' ')\n.combine($this.family).join(', ')"
         },
         {
             "name": "context",

@@ -454,7 +454,6 @@ public class FhirpathTestController {
             String jsonAstTree2 = objectMapper.writeValueAsString(simplifiedAST).replace("\r", "");
             ParamUtils.add(paramsPart, "parseDebugTreeJava", jsonAstTree2);
 
-            // Now inject the debug_trace function into all the nodes
             if (debugTrace) {
                 logger.info("Parse tree generated: " + parseTree.toString());
             }
@@ -540,7 +539,7 @@ public class FhirpathTestController {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.27 (" + testEngineVersion + ")");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.28 (" + testEngineVersion + ")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
 

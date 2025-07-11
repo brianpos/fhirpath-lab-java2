@@ -82,7 +82,7 @@ public class FmlTransformController {
         ParamUtils.add(responseParameters, "outcome", outcome);
         var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.27 (r4b)");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.5.28 (r4b)");
 
         logger.info("Evaluating: fhir/$transform");
 

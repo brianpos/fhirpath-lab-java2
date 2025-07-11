@@ -9,7 +9,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <hapifhir.version>6.5.27</hapifhir.version>
+    <hapifhir.version>6.5.28</hapifhir.version>
   </properties>
 
   <parent>
@@ -78,6 +78,13 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
       <version>1.27.0</version>
+    </dependency>
+
+    <!-- Apache Commons Collections 4 - Required by HAPI FHIR -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.4</version>
     </dependency>
 
     <!-- Test Dependencies -->
