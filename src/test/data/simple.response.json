@@ -5,7 +5,7 @@
     "name" : "parameters",
     "part" : [{
       "name" : "evaluator",
-      "valueString" : "Java 6.5.28 (R4B)"
+      "valueString" : "Java 6.6.2 (R4B)"
     },
     {
       "name" : "context",
@@ -253,11 +253,7 @@
       },
       {
         "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].given[0]"
-      },
-      {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].given[1]"
+        "valueString" : "Patient.name[0]"
       },
       {
         "name" : "index",
@@ -298,8 +294,8 @@
         "valueString" : "Patient.name[0]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Peter James"
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[0]"
       },
       {
         "name" : "index",
@@ -359,12 +355,8 @@
         "valueString" : "Patient.name[0]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Peter James"
-      },
-      {
         "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].family"
+        "valueString" : "Patient.name[0]"
       },
       {
         "name" : "index",
@@ -488,7 +480,7 @@
       },
       {
         "name" : "focus-resource-path",
-        "valueString" : "Patient.name[1].given[0]"
+        "valueString" : "Patient.name[1]"
       },
       {
         "name" : "index",
@@ -525,8 +517,8 @@
         "valueString" : "Patient.name[1]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Jim"
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
       },
       {
         "name" : "index",
@@ -578,8 +570,8 @@
         "valueString" : "Patient.name[1]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Jim"
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[1]"
       },
       {
         "name" : "index",
@@ -708,11 +700,7 @@
       },
       {
         "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].given[0]"
-      },
-      {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].given[1]"
+        "valueString" : "Patient.name[2]"
       },
       {
         "name" : "index",
@@ -753,8 +741,8 @@
         "valueString" : "Patient.name[2]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Peter James"
+        "name" : "focus-resource-path",
+        "valueString" : "Patient.name[2]"
       },
       {
         "name" : "index",
@@ -814,12 +802,8 @@
         "valueString" : "Patient.name[2]"
       },
       {
-        "name" : "focus-string",
-        "valueString" : "Peter James"
-      },
-      {
         "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].family"
+        "valueString" : "Patient.name[2]"
       },
       {
         "name" : "index",

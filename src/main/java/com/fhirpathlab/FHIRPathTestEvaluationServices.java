@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.HashMap;
 
 import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine;
-import org.hl7.fhir.r4b.fhirpath.FHIRPathEngine.IEvaluationContext;
 import org.hl7.fhir.r4b.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r4b.fhirpath.TypeDetails;
 import org.hl7.fhir.r4b.fhirpath.ExpressionNode.CollectionStatus;
@@ -12,6 +11,8 @@ import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
 import org.hl7.fhir.r4b.model.ValueSet;
+import org.hl7.fhir.r4b.fhirpath.IHostApplicationServices;
+import org.hl7.fhir.utilities.fhirpath.FHIRPathConstantEvaluationMode;
 
 import com.fhirpathlab.utils.ParamUtils;
 
@@ -22,7 +23,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.PathEngineException;
 
-public class FHIRPathTestEvaluationServices implements IEvaluationContext {
+public class FHIRPathTestEvaluationServices implements IHostApplicationServices {
     private Parameters.ParametersParameterComponent traceToParameter;
     private java.util.HashMap<String, org.hl7.fhir.r4b.model.Base> mapVariables;
     IWorkerContext context;
@@ -48,7 +49,7 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
 
     @Override
     public List<org.hl7.fhir.r4b.model.Base> resolveConstant(FHIRPathEngine engine, Object appContext, String name,
-            boolean beforeContext, boolean explicitConstant)
+            FHIRPathConstantEvaluationMode mode)
             throws PathEngineException {
         if (mapVariables != null) {
             if (mapVariables.containsKey(name)) {
@@ -96,7 +97,7 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
 
     @Override
     public TypeDetails resolveConstantType(FHIRPathEngine engine, Object appContext, String name,
-            boolean explicitConstant) throws PathEngineException {
+            FHIRPathConstantEvaluationMode mode) throws PathEngineException {
         if (mapVariables != null) {
             var key = name.substring(1);
             if (mapVariables.containsKey(key)) {
@@ -144,5 +145,10 @@ public class FHIRPathTestEvaluationServices implements IEvaluationContext {
     @Override
     public ValueSet resolveValueSet(FHIRPathEngine engine, Object appContext, String url) {
         throw new UnsupportedOperationException("Unimplemented method 'resolveValueSet'");
+    }
+
+    @Override
+    public boolean paramIsType(String name, int index) {
+        throw new UnsupportedOperationException("Unimplemented method 'paramIsType'");
     }
 }

@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 24 July 2025
+* Update to org.hl7.fhir v6.6.2
+
 ### 12 July 2025
 * Update to org.hl7.fhir v6.5.28
 * remove the POC debug_trace custom function now proper tracing capabilities exist

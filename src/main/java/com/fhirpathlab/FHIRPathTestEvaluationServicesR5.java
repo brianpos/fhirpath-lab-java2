@@ -5,13 +5,14 @@ import java.util.HashMap;
 
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine;
 import org.hl7.fhir.r5.fhirpath.FHIRPathEngine.ExecutionContext;
-import org.hl7.fhir.r5.fhirpath.FHIRPathEngine.IEvaluationContext;
+import org.hl7.fhir.r5.fhirpath.IHostApplicationServices;
 import org.hl7.fhir.r5.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r5.fhirpath.TypeDetails;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus;
 import org.hl7.fhir.r5.model.Base;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.utilities.fhirpath.FHIRPathConstantEvaluationMode;
 
 import com.fhirpathlab.utils.ParamUtils;
 
@@ -22,7 +23,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.PathEngineException;
 
-public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
+public class FHIRPathTestEvaluationServicesR5 implements IHostApplicationServices {
     private Parameters.ParametersParameterComponent traceToParameter;
     private Parameters.ParametersParameterComponent debugTraceToParameter;
     private java.util.HashMap<String, org.hl7.fhir.r5.model.Base> mapVariables;
@@ -63,7 +64,7 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
 
     @Override
     public List<org.hl7.fhir.r5.model.Base> resolveConstant(FHIRPathEngine engine, Object appContext, String name,
-            boolean beforeContext, boolean explicitConstant)
+            FHIRPathConstantEvaluationMode mode)
             throws PathEngineException {
         if (mapVariables != null) {
             if (mapVariables.containsKey(name)) {
@@ -103,7 +104,7 @@ public class FHIRPathTestEvaluationServicesR5 implements IEvaluationContext {
 
     @Override
     public TypeDetails resolveConstantType(FHIRPathEngine engine, Object appContext, String name,
-            boolean explicitConstant) throws PathEngineException {
+            FHIRPathConstantEvaluationMode mode) throws PathEngineException {
         if (mapVariables != null) {
             var key = name.substring(1);
             if (mapVariables.containsKey(key)) {
