@@ -264,11 +264,100 @@ public class FhirpathTestController {
         }
     }
 
+    @PostMapping(value = "/$fhirpath-r6", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE,
+            "application/fhir+json;fhirVersion=4.0" })
+    public ResponseEntity<String> evaluateFhirPathR6(@RequestBody String content,
+            @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType) {
+        var outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
+        org.hl7.fhir.r4b.formats.IParser parser = null;
+
+        logger.info("Evaluating: fhir/$fhirpath-r6");
+        try {
+            // Determine the appropriate parser based on Content-Type header
+            if (contentType != null && contentType.contains(MediaType.APPLICATION_XML_VALUE)) {
+                parser = xmlParser;
+                parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
+            } else {
+                parser = jsonParser; // Default to JSON parser
+                parser.setOutputStyle(org.hl7.fhir.r4b.formats.IParser.OutputStyle.PRETTY);
+            }
+
+            // Parse the input content into a Patient resource
+            org.hl7.fhir.r4b.model.Parameters parameters = null;
+            try {
+                parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
+            } catch (IOException e) {
+                logger.error("Error parsing resource: " + e.getMessage(), e);
+                outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                        .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                        .setDetails(new CodeableConcept().setText(e.getMessage()));
+                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+            }
+
+            String contextExpression = null;
+            if (parameters.getParameterValue("context") != null)
+                contextExpression = parameters.getParameterValue("context").primitiveValue();
+            String expression = null;
+            if (parameters.getParameterValue("expression") != null)
+                expression = parameters.getParameterValue("expression").primitiveValue();
+            Parameters.ParametersParameterComponent variables = parameters.getParameter("variables");
+
+            boolean debugTrace = false;
+            if (parameters.getParameterValue("debug_trace") != null)
+                debugTrace = parameters.getParameterBool("debug_trace");
+
+            if (isNotBlank(expression)) {
+                org.hl7.fhir.r5.elementmodel.Element resource = null;
+                if (parameters.getParameter("resource") != null)
+                    resource = getResource(contextFactory.getContextR6AsR5(), parameters.getParameter("resource"));
+
+                var responseParameters = evaluate("R6", contextFactory.getContextR6AsR5(), resource,
+                        contextExpression, expression, variables, debugTrace);
+                return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
+            }
+
+            // There is no expression, so we should return that as an issue
+            logger.error("Cannot evaluate without a fhirpath expression");
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INCOMPLETE)
+                    .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
+
+            return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+        } catch (org.hl7.fhir.exceptions.PathEngineException e) {
+            logger.error("Error processing $fhirpath", e);
+            var location = new java.util.ArrayList<StringType>();
+            if (e.getLocation() != null)
+                location.add(new StringType(e.getLocation().toString()));
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                    .setLocation(location)
+                    .setDetails(new CodeableConcept().setText(e.getMessage()));
+        } catch (org.hl7.fhir.exceptions.FHIRException e) {
+            logger.error("Error processing $fhirpath", e);
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                    .setDetails(new CodeableConcept().setText(e.getMessage()));
+        } catch (Exception e) {
+            logger.error("Error processing $fhirpath", e);
+            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
+                    .setDetails(new CodeableConcept().setText("Unknown error evaluating fhirpath expression"))
+                    .setDiagnostics(e.getMessage());
+        }
+        try {
+            logger.error("Unknown Error processing $fhirpath : result in outcome");
+            return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+        } catch (Exception ep) {
+            logger.error("Error reporting operationoutcome for $fhirpath result", ep);
+            return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private org.hl7.fhir.r5.elementmodel.Element getResource(org.hl7.fhir.r5.context.SimpleWorkerContext context,
             ParametersParameterComponent part) {
         try {
             if (part.getResource() != null) {
-                // convert the resource into an element (via a JASON string)
+                // convert the resource into an element (via a JSON string)
                 String jsonText = jsonParser.composeString(part.getResource());
                 InputStream inputStream = new ByteArrayInputStream(jsonText.getBytes(StandardCharsets.UTF_8));
                 var fragments = Manager.parse(context, inputStream,

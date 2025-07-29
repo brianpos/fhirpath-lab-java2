@@ -30,9 +30,11 @@ public class ContextFactory {
   private org.hl7.fhir.r4b.context.SimpleWorkerContext contextR4b;
   private org.hl7.fhir.r5.context.SimpleWorkerContext contextR4basR5;
   private org.hl7.fhir.r5.context.SimpleWorkerContext contextR5;
+  private org.hl7.fhir.r5.context.SimpleWorkerContext contextR6asR5;
   private UcumEssenceService ucumService;
   private NpmPackage r4NpmPackage;
   private NpmPackage r5NpmPackage;
+  private NpmPackage r6NpmPackage;
 
   private NpmPackage getNpmPackageR4() throws FHIRException, IOException {
     if (r4NpmPackage == null) {
@@ -50,6 +52,15 @@ public class ContextFactory {
       r5NpmPackage = pkgMgr.loadPackage("hl7.fhir.r5.core", "5.0.0");
     }
     return r5NpmPackage;
+  }
+
+  private NpmPackage getNpmPackageR6() throws FHIRException, IOException {
+    if (r6NpmPackage == null) {
+      var pkgMgr = new FilesystemPackageCacheManager.Builder().build();
+      pkgMgr.setMinimalMemory(true);
+      r6NpmPackage = pkgMgr.loadPackage("hl7.fhir.r6.core", "6.0.0-ballot3");
+    }
+    return r6NpmPackage;
   }
 
   public org.hl7.fhir.r4b.context.SimpleWorkerContext getContextR4b() throws FHIRException, IOException {
@@ -104,6 +115,20 @@ public class ContextFactory {
       context.setUcumService(getUcumService());
     }
     return contextR5;
+  }
+
+  public org.hl7.fhir.r5.context.SimpleWorkerContext getContextR6AsR5() throws FHIRException, IOException {
+    if (contextR6asR5 == null) {
+      var context = new FhirpathLabSimpleWorkerContextR5();
+      context.setProgress(true);
+      var pkg = getNpmPackageR6();
+      context.loadFromPackage(pkg, new R5ContextLoader());
+      context.unloadBinaries();
+      contextR6asR5 = context;
+      r6NpmPackage = null; // release the memory
+      context.setUcumService(getUcumService());
+    }
+    return contextR6asR5;
   }
 }
 
