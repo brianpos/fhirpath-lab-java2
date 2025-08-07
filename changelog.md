@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 7 August 2025
+* Update to org.hl7.fhir v6.6.3
+
 ### 29 July 2025
 * add support for R6 ballot3 (using the R5 element model with R6 packaged structuredefinitions)
 

@@ -20,7 +20,7 @@
     "name" : "parameters",
     "part" : [{
       "name" : "evaluator",
-      "valueString" : "Java 6.6.2 (r4b)"
+      "valueString" : "Java 6.6.3 (r4b)"
     },
     {
       "name" : "map",

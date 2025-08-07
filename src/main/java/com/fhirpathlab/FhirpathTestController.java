@@ -628,7 +628,7 @@ public class FhirpathTestController {
         var responseParameters = new Parameters();
         responseParameters.setId("fhirpath");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.6.2 (" + testEngineVersion + ")");
+        ParamUtils.add(paramsPart, "evaluator", "Java 6.6.3 (" + testEngineVersion + ")");
         ParamUtils.add(paramsPart, "context", contextExpression);
         ParamUtils.add(paramsPart, "expression", expression);
 
