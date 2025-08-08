@@ -222,12 +222,20 @@
     {
       "name" : "13,5,given",
       "part" : [{
-        "name" : "resource-path",
-        "valueString" : "Patient.name[0].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].given[0]"
+        }],
+        "name" : "string",
+        "valueString" : "Peter"
       },
       {
-        "name" : "resource-path",
-        "valueString" : "Patient.name[0].given[1]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].given[1]"
+        }],
+        "name" : "string",
+        "valueString" : "James"
       },
       {
         "name" : "this-resource-path",
@@ -271,12 +279,20 @@
         "valueString" : "Patient.name[0]"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].given[0]"
+        }],
+        "name" : "focus-string",
+        "valueString" : "Peter"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].given[1]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].given[1]"
+        }],
+        "name" : "focus-string",
+        "valueString" : "James"
       },
       {
         "name" : "index",
@@ -305,8 +321,12 @@
     {
       "name" : "44,6,family",
       "part" : [{
-        "name" : "resource-path",
-        "valueString" : "Patient.name[0].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].family"
+        }],
+        "name" : "string",
+        "valueString" : "Chalmers"
       },
       {
         "name" : "this-resource-path",
@@ -328,8 +348,12 @@
         "valueString" : "Peter James"
       },
       {
-        "name" : "resource-path",
-        "valueString" : "Patient.name[0].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].family"
+        }],
+        "name" : "string",
+        "valueString" : "Chalmers"
       },
       {
         "name" : "this-resource-path",
@@ -378,8 +402,12 @@
         "valueString" : "Peter James"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[0].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[0].family"
+        }],
+        "name" : "focus-string",
+        "valueString" : "Chalmers"
       },
       {
         "name" : "index",
@@ -453,8 +481,12 @@
     {
       "name" : "13,5,given",
       "part" : [{
-        "name" : "resource-path",
-        "valueString" : "Patient.name[1].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[1].given[0]"
+        }],
+        "name" : "string",
+        "valueString" : "Jim"
       },
       {
         "name" : "this-resource-path",
@@ -498,8 +530,12 @@
         "valueString" : "Patient.name[1]"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[1].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[1].given[0]"
+        }],
+        "name" : "focus-string",
+        "valueString" : "Jim"
       },
       {
         "name" : "index",
@@ -669,12 +705,20 @@
     {
       "name" : "13,5,given",
       "part" : [{
-        "name" : "resource-path",
-        "valueString" : "Patient.name[2].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].given[0]"
+        }],
+        "name" : "string",
+        "valueString" : "Peter"
       },
       {
-        "name" : "resource-path",
-        "valueString" : "Patient.name[2].given[1]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].given[1]"
+        }],
+        "name" : "string",
+        "valueString" : "James"
       },
       {
         "name" : "this-resource-path",
@@ -718,12 +762,20 @@
         "valueString" : "Patient.name[2]"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].given[0]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].given[0]"
+        }],
+        "name" : "focus-string",
+        "valueString" : "Peter"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].given[1]"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].given[1]"
+        }],
+        "name" : "focus-string",
+        "valueString" : "James"
       },
       {
         "name" : "index",
@@ -752,8 +804,12 @@
     {
       "name" : "44,6,family",
       "part" : [{
-        "name" : "resource-path",
-        "valueString" : "Patient.name[2].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].family"
+        }],
+        "name" : "string",
+        "valueString" : "Windsor"
       },
       {
         "name" : "this-resource-path",
@@ -775,8 +831,12 @@
         "valueString" : "Peter James"
       },
       {
-        "name" : "resource-path",
-        "valueString" : "Patient.name[2].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].family"
+        }],
+        "name" : "string",
+        "valueString" : "Windsor"
       },
       {
         "name" : "this-resource-path",
@@ -825,8 +885,12 @@
         "valueString" : "Peter James"
       },
       {
-        "name" : "focus-resource-path",
-        "valueString" : "Patient.name[2].family"
+        "extension" : [{
+          "url" : "http://fhir.forms-lab.com/StructureDefinition/resource-path",
+          "valueString" : "Patient.name[2].family"
+        }],
+        "name" : "focus-string",
+        "valueString" : "Windsor"
       },
       {
         "name" : "index",
