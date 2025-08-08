@@ -140,7 +140,15 @@ public class ParamUtils {
             if (em.getPath() != null) {
                 var pathValue = new StringType(em.getPath().replace("[x]", ""));
                 if (em.hasIndex() && em.getIndex() >= 0 && !pathValue.getValue().endsWith("]")) {
-                    pathValue.setValue(String.format("%s[%d]", pathValue.getValue(), em.getIndex()));
+                    if (em.getElementProperty() != null && em.getElementProperty().getDefinition() != null)
+                    {
+                        if (em.getElementProperty().getDefinition().getMaxAsInt() != 1) {
+                            pathValue.setValue(String.format("%s[%d]", pathValue.getValue(), em.getIndex()));
+                        }
+                    }
+                    else if (em.getProperty() != null && em.getProperty().getDefinition() != null && em.getProperty().getDefinition().getMaxAsInt() != 1 && !em.getProperty().getDefinition().isResource()) {
+                        pathValue.setValue(String.format("%s[%d]", pathValue.getValue(), em.getIndex()));
+                    }
                 }
                 if (skipValueIfHasResourcePath && !em.isPrimitive()) {
                     result.setName("resource-path");
