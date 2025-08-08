@@ -142,7 +142,7 @@ public class ParamUtils {
                 if (em.hasIndex() && em.getIndex() >= 0 && !pathValue.getValue().endsWith("]")) {
                     pathValue.setValue(String.format("%s[%d]", pathValue.getValue(), em.getIndex()));
                 }
-                if (skipValueIfHasResourcePath) {
+                if (skipValueIfHasResourcePath && !em.isPrimitive()) {
                     result.setName("resource-path");
                     result.setValue(pathValue);
                     return result;

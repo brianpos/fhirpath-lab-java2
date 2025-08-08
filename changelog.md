@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 8 August 2025
+* debug tracing will include the value if it is primitive (even when it has a source in the resource path)
+
 ### 7 August 2025
 * Update to org.hl7.fhir v6.6.3
 
