@@ -217,23 +217,31 @@ public class FhirpathTestController {
             if (parameters.getParameterValue("debug_trace") != null)
                 debugTrace = parameters.getParameterBool("debug_trace");
 
-            if (isNotBlank(expression)) {
-                org.hl7.fhir.r5.elementmodel.Element resource = null;
-                if (parameters.getParameter("resource") != null)
-                    resource = getResource(contextFactory.getContextR4bAsR5(), parameters.getParameter("resource"));
-
-                var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource,
-                        contextExpression, expression, variables, debugTrace);
-                return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
+            if (!isNotBlank(expression)) {
+                // There is no expression, so we should return that as an issue
+                logger.error("Cannot evaluate without a fhirpath expression");
+                outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                        .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INCOMPLETE)
+                        .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
+                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
             }
 
-            // There is no expression, so we should return that as an issue
-            logger.error("Cannot evaluate without a fhirpath expression");
-            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
-                    .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INCOMPLETE)
-                    .setDetails(new CodeableConcept().setText("Cannot evaluate without a fhirpath expression"));
+            // retrieve the resource
+            org.hl7.fhir.r5.elementmodel.Element resource = null;
+            if (parameters.getParameter("resource") != null)
+                resource = getResource(contextFactory.getContextR4bAsR5(), parameters.getParameter("resource"));
 
-            return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+            if (resource == null) {
+                logger.error("Cannot evaluate expression without a test resource");
+                outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                        .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INVALID)
+                        .setDetails(new CodeableConcept().setText("cannot evaluate without a test resource"));
+                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+            }
+
+            var responseParameters = evaluate("R4B", contextFactory.getContextR4bAsR5(), resource,
+                    contextExpression, expression, variables, debugTrace);
+            return new ResponseEntity<>(parser.composeString(responseParameters), HttpStatus.OK);
         } catch (org.hl7.fhir.exceptions.PathEngineException e) {
             logger.error("Error processing $fhirpath", e);
             var location = new java.util.ArrayList<StringType>();
