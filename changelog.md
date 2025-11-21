@@ -3,6 +3,10 @@
 ## Changelog
 
 ### 25 August 2025
+* Update to org.hl7.fhir v6.7.7
+* Update several other dependency projects to the latest versions
+
+### 25 August 2025
 * Update to org.hl7.fhir v6.6.5
 
 ### 8 August 2025
