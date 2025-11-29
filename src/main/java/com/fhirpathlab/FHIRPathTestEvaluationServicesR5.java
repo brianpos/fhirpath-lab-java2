@@ -210,4 +210,23 @@ public class FHIRPathTestEvaluationServicesR5 implements IHostApplicationService
     public boolean paramIsType(String name, int index) {
         throw new UnsupportedOperationException("Unimplemented method 'paramIsType'");
     }
+
+    @Override
+    public Base findContainingResource(Object appContext, Base item) {
+        if (item instanceof org.hl7.fhir.r5.elementmodel.Element) {
+            org.hl7.fhir.r5.elementmodel.Element element = (org.hl7.fhir.r5.elementmodel.Element) item;
+            while (element != null && !(element.isResource()
+                    && element.getSpecial() != org.hl7.fhir.r5.elementmodel.Element.SpecialElement.CONTAINED)) {
+                element = element.getParentForValidator();
+            }
+            if (element != null) {
+                return element;
+            }
+        }
+        if (item instanceof org.hl7.fhir.r5.model.Resource) {
+            return item;
+        }
+        // now it gets hard
+        return null; // for now
+    }
 }
