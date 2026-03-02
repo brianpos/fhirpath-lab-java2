@@ -272,4 +272,13 @@ class AstMapperTest {
         List<Base> results = engine.evaluate(input, "Patient.birthDate.toString()");
         assertEquals(0, results.size());
     }
+
+    @Test
+    public void testEvaluate_Type() {
+        Patient input = new Patient();
+        var dtv = new DateType();
+        input.setBirthDateElement(dtv);
+        List<Base> results = engine.evaluate(input, "Patient.birthDate.type()");
+        assertEquals(1, results.size());
+    }
 }

@@ -8,6 +8,7 @@ import org.hl7.fhir.r4b.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r4b.fhirpath.TypeDetails;
 import org.hl7.fhir.r4b.fhirpath.ExpressionNode.CollectionStatus;
 import org.hl7.fhir.r4b.model.Base;
+import org.hl7.fhir.r4b.model.Identifier;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
 import org.hl7.fhir.r4b.model.ValueSet;
@@ -127,7 +128,7 @@ public class FHIRPathTestEvaluationServices implements IHostApplicationServices 
     }
 
     @Override
-    public Base resolveReference(FHIRPathEngine engine, Object appContext, String url, Base refContext)
+    public Base resolveReference(FHIRPathEngine engine, Object appContext, String url, Identifier i, Base refContext)
             throws FHIRException {
         throw new UnsupportedOperationException("Unimplemented method 'resolveReference'");
     }

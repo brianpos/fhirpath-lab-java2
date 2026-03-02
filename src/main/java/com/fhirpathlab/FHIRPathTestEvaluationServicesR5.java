@@ -10,6 +10,7 @@ import org.hl7.fhir.r5.fhirpath.FHIRPathUtilityClasses.FunctionDetails;
 import org.hl7.fhir.r5.fhirpath.TypeDetails;
 import org.hl7.fhir.r5.fhirpath.ExpressionNode.CollectionStatus;
 import org.hl7.fhir.r5.model.Base;
+import org.hl7.fhir.r5.model.Identifier;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.utilities.fhirpath.FHIRPathConstantEvaluationMode;
@@ -186,7 +187,7 @@ public class FHIRPathTestEvaluationServicesR5 implements IHostApplicationService
     }
 
     @Override
-    public Base resolveReference(FHIRPathEngine engine, Object appContext, String url, Base refContext)
+    public Base resolveReference(FHIRPathEngine engine, Object appContext, String url, Identifier i, Base refContext)
             throws FHIRException {
         throw new UnsupportedOperationException("Unimplemented method 'resolveReference'");
     }
