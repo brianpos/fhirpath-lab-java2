@@ -112,7 +112,7 @@ public class FHIRPathTestEvaluationServices implements IHostApplicationServices 
 
     @Override
     public FunctionDetails resolveFunction(FHIRPathEngine engine, String functionName) {
-        throw new UnsupportedOperationException("Unimplemented method 'resolveFunction'");
+        return null;
     }
 
     @Override

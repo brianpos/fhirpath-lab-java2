@@ -20,8 +20,10 @@ import java.util.List;
 import org.hl7.fhir.r4b.formats.JsonParser;
 import org.hl7.fhir.r4b.model.Base;
 import org.hl7.fhir.r4b.model.DateType;
+import org.hl7.fhir.r4b.model.DateTimeType;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.Patient;
+import org.hl7.fhir.r4b.model.Observation;
 // import org.hl7.fhir.r4b.fhirpath.TypeDetails;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -262,6 +264,19 @@ class AstMapperTest {
         List<Base> results = engine.evaluate(input, "Patient.birthDate.toString()");
         assertEquals(1, results.size());
         assertEquals("2024", results.get(0).toString());
+    }
+
+    @org.junit.jupiter.api.Disabled("toDate() not yet in R4B FHIRPathEngine Function enum - HAPI library issue")
+    @Test
+    public void testEvaluate_ToDateOnDateTimeValue() {
+        Observation input = new Observation();
+        var dtv = new DateTimeType("2019-11-22T22:12:56+09:00");
+        input.setEffective(dtv);
+        FHIRPathTestEvaluationServices services = new FHIRPathTestEvaluationServices(engine.getWorker());
+        engine.setHostServices(services);
+        List<Base> results = engine.evaluate(input, "Observation.effective.toString().substring(0,10).toDate()");
+        assertEquals(1, results.size());
+        assertEquals("2019-11-22", results.get(0).toString());
     }
 
     @Test
