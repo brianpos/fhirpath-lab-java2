@@ -1,77 +1,8 @@
 {
-  "resourceType" : "Parameters",
-  "id" : "map",
-  "parameter" : [{
-    "name" : "outcome",
-    "resource" : {
-      "resourceType" : "OperationOutcome",
-      "issue" : [{
-        "severity" : "information",
-        "code" : "informational",
-        "diagnostics" : "Transformation completed successfully"
-      }]
-    }
-  },
-  {
-    "name" : "result",
-    "valueString" : "{\r\n  \"resourceType\" : \"Bundle\",\r\n  \"id\" : \"smile\",\r\n  \"type\" : \"transaction\",\r\n  \"entry\" : [{\r\n    \"fullUrl\" : \"http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/example\",\r\n    \"resource\" : {\r\n      \"resourceType\" : \"Patient\",\r\n      \"id\" : \"example\",\r\n      \"meta\" : {\r\n        \"versionId\" : \"290\",\r\n        \"lastUpdated\" : \"2024-07-03T15:52:48.578+00:00\",\r\n        \"source\" : \"#jgx7LXv30rtazIgL\"\r\n      },\r\n      \"text\" : {\r\n        \"status\" : \"generated\",\r\n        \"div\" : \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><div class=\\\"hapiHeaderText\\\">Homer <b>SIMPSON </b></div><table class=\\\"hapiPropertyTable\\\"><tbody/></table></div>\"\r\n      },\r\n      \"name\" : [{\r\n        \"family\" : \"Simpson\",\r\n        \"given\" : [\"Homer\"]\r\n      }],\r\n      \"gender\" : \"male\"\r\n    },\r\n    \"request\" : {\r\n      \"method\" : \"POST\",\r\n      \"url\" : \"Observation\"\r\n    }\r\n  }]\r\n}"
-  },
-  {
-    "name" : "parameters",
-    "part" : [{
-      "name" : "evaluator",
-      "valueString" : "Java 6.9.4 (r4b)"
-    },
-    {
-      "name" : "map",
-      "valueString" : "map \"http://fhirpath-lab.com/StructureMap/intro-patient-map\" = \"IntroPatientMap\"\n\nuses \"http://hl7.org/fhir/StructureDefinition/Patient\" as source\nuses \"http://hl7.org/fhir/StructureDefinition/Bundle\" as target\n\ngroup patientMap(source src : Patient, target bundle : Bundle) {\n  src -> bundle.id = ('smile') \"bundle-id\";\n  src -> bundle.type = 'transaction' \"bundle-type\";\n\n  // create a new entry and put the patient resource in it\n  src -> bundle.entry as entry, entry.resource = src then\n    SetEntryData(src, entry) \"prep-entry\";\n}\n\ngroup SetEntryData(source src: Patient, target entry)\n{\n  src.id as patientId log('patientId: ' & %src.id) -> entry.fullUrl = append('http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/', patientId);\n  \n  src -> entry.request as request then {\n    src -> request.method = 'POST' \"obsn-request-method\";\n    src -> request.url = 'Observation' \"obsn-request-url\";\n  } \"obsn-entry-request\";\n}\n      "
-    }]
-  },
-  {
-    "name" : "trace",
-    "part" : [{
-      "name" : "debug",
-      "valueString" : "Start Transform http://fhirpath-lab.com/StructureMap/intro-patient-map"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "Group : patientMap; vars = source variables [src: (Patient)], target variables [bundle: (Bundle)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "  rule : bundleid; vars = source variables [src: (Patient)], target variables [bundle: (Bundle)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "  rule : bundletype; vars = source variables [src: (Patient)], target variables [bundle: (Bundle)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "  rule : prepentry; vars = source variables [src: (Patient)], target variables [bundle: (Bundle)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "      Group : SetEntryData; vars = source variables [src: (Patient)], target variables [entry: (BackboneElement)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "        rule : id; vars = source variables [src: (Patient)], target variables [entry: (BackboneElement)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "patientId: example"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "        rule : obsnentryrequest; vars = source variables [src: (Patient)], target variables [entry: (BackboneElement)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "          rule : obsnrequestmethod; vars = source variables [src: (Patient)], target variables [entry: (BackboneElement), request: (BackboneElement)], shared variables []"
-    },
-    {
-      "name" : "debug",
-      "valueString" : "          rule : obsnrequesturl; vars = source variables [src: (Patient)], target variables [entry: (BackboneElement), request: (BackboneElement)], shared variables []"
-    }]
+  "resourceType" : "OperationOutcome",
+  "issue" : [{
+    "severity" : "error",
+    "code" : "exception",
+    "diagnostics" : "Unable to resolve package id hl7.fhir.r4b.core#4.3.0"
   }]
 }
