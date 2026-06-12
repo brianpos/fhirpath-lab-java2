@@ -5,7 +5,7 @@
     "name" : "parameters",
     "part" : [{
       "name" : "evaluator",
-      "valueString" : "Java 6.9.9 (R4B)"
+      "valueString" : "Java 6.9.10 (R4B)"
     },
     {
       "name" : "context",
