@@ -2,6 +2,9 @@
 
 ## Changelog
 
+### 12 June 2026
+* Update to org.hl7.fhir v6.9.10
+
 ### 30 May 2026
 * Update to org.hl7.fhir v6.9.9
 
