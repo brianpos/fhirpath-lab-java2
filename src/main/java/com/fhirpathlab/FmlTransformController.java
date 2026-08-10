@@ -192,10 +192,11 @@ public class FmlTransformController {
             ParamUtils.add(responseParameters, "outcome", outcome);
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
-                    .setDiagnostics(e.getMessage());
+                    .setDetails(new org.hl7.fhir.r4b.model.CodeableConcept().setText(e.getMessage()));
+                    // .setDiagnostics(e.getMessage());
             try {
                 logger.error("Unknown Error processing $transform : result in outcome");
-                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(parser.composeString(outcome), HttpStatus.OK);
             } catch (Exception ep) {
                 logger.error("Error reporting operationoutcome for $transform result", ep);
                 return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -277,6 +278,13 @@ public class FmlTransformController {
             }
             context.cacheResource(sd);
         }
+
+        if (resource instanceof org.hl7.fhir.r4b.model.ConceptMap) {
+            var cm = (org.hl7.fhir.r5.model.ConceptMap) VersionConvertorFactory_43_50
+                    .convertResource(resource);
+            context.cacheResource(cm);
+        }
+
         if (resource instanceof Bundle) {
             Bundle bundle = (Bundle) resource;
             for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
