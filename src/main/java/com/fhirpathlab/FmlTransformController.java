@@ -49,6 +49,8 @@ import java.nio.charset.StandardCharsets;
                                                                                                     // client origin
 public class FmlTransformController {
 
+    private static final String OPERATION_OUTCOME_FILE_EXTENSION =
+            "http://hl7.org/fhir/StructureDefinition/operationoutcome-file";
     private final ContextFactory contextFactory;
     private static final Logger logger = LoggerFactory.getLogger(FhirpathTestController.class);
     private org.hl7.fhir.r4b.formats.XmlParser xmlParser;
@@ -83,6 +85,8 @@ public class FmlTransformController {
         var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
         ParamUtils.add(paramsPart, "evaluator", "Java 6.9.12 (r4b)");
+        String primaryMapFile = null;
+        String errorMapFile = null;
 
         logger.info("Evaluating: fhir/$transform");
 
@@ -102,10 +106,6 @@ public class FmlTransformController {
             // Parse the input content into a Patient resource
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
 
-            // read the `map` named parameter from the valueString
-            var fml = parameters.getParameter("map").getValue().primitiveValue();
-            ParamUtils.add(paramsPart, "map", fml);
-
             // read the `resource` named parameter
             org.hl7.fhir.r5.elementmodel.Element sourceResource = null;
             String resourceText = null;
@@ -124,7 +124,8 @@ public class FmlTransformController {
             var localContext = new org.hl7.fhir.r5.context.SimpleWorkerContext(context);
             readCustomStructureDefinitions(localContext, parameters);
 
-            // Parse the map into a structureMap
+            // Parse all supplied maps. The first map is the transform entry point and the
+            // remaining maps are available to resolve imports.
             List<org.hl7.fhir.r5.model.Base> outputs = new ArrayList<>();
             var transformerServices = new TransformSupportServicesR5(localContext, outputs);
             var paramsTrace = ParamUtils.add(responseParameters, "trace");
@@ -132,7 +133,45 @@ public class FmlTransformController {
             org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities smu = new org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities(
                     localContext, transformerServices);
             smu.setDebug(true);
-            var map = smu.parse(fml, contentType);
+            StructureMap map = null;
+            List<Parameters.ParametersParameterComponent> mapParameters = parameters.getParameters("map");
+            for (int mapIndex = 0; mapIndex < mapParameters.size(); mapIndex++) {
+                Parameters.ParametersParameterComponent mapParameter = mapParameters.get(mapIndex);
+                if (!(mapParameter.getValue() instanceof StringType)) {
+                    throw new FHIRException("Map parameter " + (mapIndex + 1) + " must contain a valueString");
+                }
+
+                String fml = mapParameter.getValue().primitiveValue();
+                String mapFile = getStringExtension(mapParameter, OPERATION_OUTCOME_FILE_EXTENSION);
+                errorMapFile = mapFile;
+                if (mapIndex == 0) {
+                    primaryMapFile = mapFile;
+                }
+                ParamUtils.add(paramsPart, "map", fml);
+
+                StructureMap suppliedMap = smu.parse(fml, mapFile != null ? mapFile : contentType);
+                if (mapFile != null) {
+                    for (StructureMap.StructureMapGroupComponent group : suppliedMap.getGroup()) {
+                        group.addExtension(OPERATION_OUTCOME_FILE_EXTENSION,
+                                new org.hl7.fhir.r5.model.StringType(mapFile));
+                    }
+                }
+                try
+                {
+                    localContext.cacheResource(suppliedMap);
+                } catch (org.hl7.fhir.exceptions.DefinitionException e) {
+                    outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.WARNING)
+                            .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.DUPLICATE)
+                            .setDetails(new org.hl7.fhir.r4b.model.CodeableConcept().setText(e.getMessage()));
+                }
+                if (map == null) {
+                    map = suppliedMap;
+                }
+            }
+            if (map == null) {
+                throw new FHIRException("Missing map parameter");
+            }
+            errorMapFile = primaryMapFile;
 
             InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
             try {
@@ -190,9 +229,10 @@ public class FmlTransformController {
             logger.error("Error processing $transform", e);
             outcome = new org.hl7.fhir.r4b.model.OperationOutcome();
             ParamUtils.add(responseParameters, "outcome", outcome);
-            outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
+                var issue = outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.EXCEPTION)
                     .setDetails(new org.hl7.fhir.r4b.model.CodeableConcept().setText(e.getMessage()));
+                    setIssueFile(issue, errorMapFile != null ? errorMapFile : primaryMapFile);
                     // .setDiagnostics(e.getMessage());
             try {
                 logger.error("Unknown Error processing $transform : result in outcome");
@@ -201,6 +241,18 @@ public class FmlTransformController {
                 logger.error("Error reporting operationoutcome for $transform result", ep);
                 return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
+        }
+    }
+
+    private static String getStringExtension(org.hl7.fhir.r4b.model.BackboneElement element, String url) {
+        var extension = element.getExtensionByUrl(url);
+        return extension != null && extension.hasValue() ? extension.getValue().primitiveValue() : null;
+    }
+
+    private static void setIssueFile(org.hl7.fhir.r4b.model.OperationOutcome.OperationOutcomeIssueComponent issue,
+            String fileName) {
+        if (fileName != null && !fileName.isBlank() && issue.getExtensionByUrl(OPERATION_OUTCOME_FILE_EXTENSION) == null) {
+            issue.addExtension(OPERATION_OUTCOME_FILE_EXTENSION, new StringType(fileName));
         }
     }
 
