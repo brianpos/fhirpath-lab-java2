@@ -106,6 +106,17 @@ public class FmlTransformController {
             // Parse the input content into a Patient resource
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
 
+            List<Parameters.ParametersParameterComponent> mapParameters = new ArrayList<>();
+            for (Parameters.ParametersParameterComponent parameter : parameters.getParameter()) {
+                String name = parameter.getName();
+                if ("source".equals(name) || "sourceMap".equals(name) || "supportingMap".equals(name)) {
+                    throw new FHIRException("This implementation does not support the standard parameter '" + name + "'");
+                }
+                if ("map".equals(name) || "srcMap".equals(name)) {
+                    mapParameters.add(parameter);
+                }
+            }
+
             // read the `resource` named parameter
             org.hl7.fhir.r5.elementmodel.Element sourceResource = null;
             String resourceText = null;
@@ -124,8 +135,8 @@ public class FmlTransformController {
             var localContext = new org.hl7.fhir.r5.context.SimpleWorkerContext(context);
             readCustomStructureDefinitions(localContext, parameters);
 
-            // Parse all supplied maps. The first map is the transform entry point and the
-            // remaining maps are available to resolve imports.
+            // Parse map and srcMap parameters in request order. The first map is the
+            // transform entry point and the remaining maps are available to resolve imports.
             List<org.hl7.fhir.r5.model.Base> outputs = new ArrayList<>();
             var transformerServices = new TransformSupportServicesR5(localContext, outputs);
             var paramsTrace = ParamUtils.add(responseParameters, "trace");
@@ -134,7 +145,6 @@ public class FmlTransformController {
                     localContext, transformerServices);
             smu.setDebug(true);
             StructureMap map = null;
-            List<Parameters.ParametersParameterComponent> mapParameters = parameters.getParameters("map");
             for (int mapIndex = 0; mapIndex < mapParameters.size(); mapIndex++) {
                 Parameters.ParametersParameterComponent mapParameter = mapParameters.get(mapIndex);
                 if (!(mapParameter.getValue() instanceof StringType)) {
@@ -169,7 +179,7 @@ public class FmlTransformController {
                 }
             }
             if (map == null) {
-                throw new FHIRException("Missing map parameter");
+                throw new FHIRException("Missing map or srcMap parameter");
             }
             errorMapFile = primaryMapFile;
 

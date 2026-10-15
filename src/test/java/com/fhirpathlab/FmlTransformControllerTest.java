@@ -3,6 +3,9 @@ package com.fhirpathlab;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
@@ -49,8 +52,92 @@ class FmlTransformControllerTest extends TestBase {
                 .andExpect(content().json(expectedResponse));
     }
 
-            @Test
-            void transformsUsingGroupFromSupportingMap() throws Exception {
+    @Test
+    void transformsUsingSrcMapWithLegacyResponse() throws Exception {
+        var parser = new org.hl7.fhir.r4b.formats.JsonParser();
+        var request = (org.hl7.fhir.r4b.model.Parameters) parser.parse(ReadTestFile("transform", "request", "json"));
+        request.getParameter("map").setName("srcMap");
+
+        mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(ReadTestFile("transform", "response", "json")));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "source, true", "source, false",
+        "sourceMap, true", "sourceMap, false",
+        "supportingMap, true", "supportingMap, false"
+    })
+    void rejectsUnsupportedStandardMapParameters(String parameterName, boolean includeLegacyRequest) throws Exception {
+        var parser = new org.hl7.fhir.r4b.formats.JsonParser();
+        var request = includeLegacyRequest
+                ? (org.hl7.fhir.r4b.model.Parameters) parser.parse(ReadTestFile("transform", "request", "json"))
+                : new org.hl7.fhir.r4b.model.Parameters();
+        var parameter = request.addParameter().setName(parameterName);
+        if ("source".equals(parameterName)) {
+            parameter.setValue(new org.hl7.fhir.r4b.model.UriType("http://example.org/StructureMap/primary"));
+        } else {
+            parameter.setResource(new org.hl7.fhir.r4b.model.StructureMap()
+                    .setUrl("http://example.org/StructureMap/primary"));
+        }
+
+        var result = mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var outcome = (org.hl7.fhir.r4b.model.OperationOutcome) parser
+                .parse(result.getResponse().getContentAsString());
+        assertEquals(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR,
+                outcome.getIssueFirstRep().getSeverity());
+        assertEquals("This implementation does not support the standard parameter '" + parameterName + "'",
+                outcome.getIssueFirstRep().getDetails().getText());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "map", "srcMap" })
+    void rejectsNonStringMaps(String parameterName) throws Exception {
+        var request = new org.hl7.fhir.r4b.model.Parameters();
+        request.addParameter().setName(parameterName).setValue(new org.hl7.fhir.r4b.model.IntegerType(1));
+        request.addParameter().setName("resource").setResource(new org.hl7.fhir.r4b.model.Patient());
+        var parser = new org.hl7.fhir.r4b.formats.JsonParser();
+
+        var result = mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var outcome = (org.hl7.fhir.r4b.model.OperationOutcome) parser
+                .parse(result.getResponse().getContentAsString());
+        assertEquals("Map parameter 1 must contain a valueString", outcome.getIssueFirstRep().getDetails().getText());
+    }
+
+    @Test
+    void rejectsMissingMaps() throws Exception {
+        var request = new org.hl7.fhir.r4b.model.Parameters();
+        request.addParameter().setName("resource").setResource(new org.hl7.fhir.r4b.model.Patient());
+        var parser = new org.hl7.fhir.r4b.formats.JsonParser();
+
+        var result = mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var outcome = (org.hl7.fhir.r4b.model.OperationOutcome) parser
+                .parse(result.getResponse().getContentAsString());
+        assertEquals("Missing map or srcMap parameter", outcome.getIssueFirstRep().getDetails().getText());
+    }
+
+            @ParameterizedTest
+            @CsvSource({ "map, map", "srcMap, srcMap", "map, srcMap", "srcMap, map" })
+            void transformsUsingGroupFromSupportingMap(String primaryParameterName, String supportingParameterName)
+                    throws Exception {
             String primaryMap = """
                 map "http://example.org/StructureMap/primary" = "Primary"
 
@@ -71,8 +158,8 @@ class FmlTransformControllerTest extends TestBase {
                 """;
 
             var request = new org.hl7.fhir.r4b.model.Parameters();
-            addMap(request, primaryMap, "primary.map");
-            addMap(request, supportingMap, "supporting.map");
+            addMap(request, primaryParameterName, primaryMap, "primary.map");
+            addMap(request, supportingParameterName, supportingMap, "supporting.map");
             request.addParameter().setName("resource")
                 .setResource(new org.hl7.fhir.r4b.model.Patient().setId("input"));
             var parser = new org.hl7.fhir.r4b.formats.JsonParser();
@@ -91,10 +178,11 @@ class FmlTransformControllerTest extends TestBase {
             assertEquals(org.hl7.fhir.r4b.model.Bundle.BundleType.BATCH, transformed.getType());
             }
 
-            @Test
-            void associatesTransformErrorsWithPrimaryMapFile() throws Exception {
+            @ParameterizedTest
+            @ValueSource(strings = { "map", "srcMap" })
+            void associatesTransformErrorsWithPrimaryMapFile(String parameterName) throws Exception {
             var request = new org.hl7.fhir.r4b.model.Parameters();
-            addMap(request, "not a valid map", "primary.map");
+            addMap(request, parameterName, "not a valid map", "primary.map");
             request.addParameter().setName("resource").setResource(new org.hl7.fhir.r4b.model.Patient());
             var parser = new org.hl7.fhir.r4b.formats.JsonParser();
 
@@ -111,8 +199,10 @@ class FmlTransformControllerTest extends TestBase {
             assertEquals("primary.map", fileExtension.getValue().primitiveValue());
             }
 
-            @Test
-            void associatesSupportingMapParseErrorsWithSupportingMapFile() throws Exception {
+            @ParameterizedTest
+            @CsvSource({ "map, map", "srcMap, srcMap", "map, srcMap", "srcMap, map" })
+            void associatesSupportingMapParseErrorsWithSupportingMapFile(String primaryParameterName,
+                    String supportingParameterName) throws Exception {
             String primaryMap = """
                 map "http://example.org/StructureMap/primary" = "Primary"
                 imports "http://example.org/StructureMap/supporting"
@@ -121,8 +211,8 @@ class FmlTransformControllerTest extends TestBase {
                 }
                 """;
             var request = new org.hl7.fhir.r4b.model.Parameters();
-            addMap(request, primaryMap, "primary.map");
-            addMap(request, "not a valid map", "supporting.map");
+            addMap(request, primaryParameterName, primaryMap, "primary.map");
+            addMap(request, supportingParameterName, "not a valid map", "supporting.map");
             request.addParameter().setName("resource")
                 .setResource(new org.hl7.fhir.r4b.model.Patient().setId("input"));
             var parser = new org.hl7.fhir.r4b.formats.JsonParser();
@@ -140,8 +230,9 @@ class FmlTransformControllerTest extends TestBase {
             assertEquals("supporting.map", fileExtension.getValue().primitiveValue());
             }
 
-            private static void addMap(org.hl7.fhir.r4b.model.Parameters request, String map, String fileName) {
-            request.addParameter().setName("map")
+            private static void addMap(org.hl7.fhir.r4b.model.Parameters request, String parameterName, String map,
+                    String fileName) {
+            request.addParameter().setName(parameterName)
                 .setValue(new org.hl7.fhir.r4b.model.StringType(map))
                 .addExtension(OPERATION_OUTCOME_FILE_EXTENSION, new org.hl7.fhir.r4b.model.StringType(fileName));
             }
