@@ -1,10 +1,16 @@
 package com.fhirpathlab;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -53,7 +59,7 @@ class FmlTransformControllerTest extends TestBase {
     }
 
     @Test
-    void transformsUsingSrcMapWithLegacyResponse() throws Exception {
+    void transformsUsingSrcMapWithTypedResponse() throws Exception {
         var parser = new org.hl7.fhir.r4b.formats.JsonParser();
         var request = (org.hl7.fhir.r4b.model.Parameters) parser.parse(ReadTestFile("transform", "request", "json"));
         request.getParameter("map").setName("srcMap");
@@ -63,6 +69,262 @@ class FmlTransformControllerTest extends TestBase {
                 .content(parser.composeString(request)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(ReadTestFile("transform", "response", "json")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "content", "resource" })
+    void transformsInlineResourceInXmlRequest(String parameterName) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setName(parameterName);
+        var parser = new org.hl7.fhir.r4b.formats.XmlParser();
+
+        var result = mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_XML)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var patient = transformedPatient(parser.parse(result.getResponse().getContentAsString()),
+                new org.hl7.fhir.r4b.formats.JsonParser(), "content".equals(parameterName));
+        assertEquals("Simpson", patient.getNameFirstRep().getFamily());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "content, json, json",
+        "content, application/json, json",
+        "content, text/json, json",
+        "content, application/fhir+json, json",
+        "content, application/example+json, json",
+        "content, ' APPLICATION/FHIR+JSON; charset=UTF-8 ', json",
+        "content, xml, xml",
+        "content, application/xml, xml",
+        "content, text/xml, xml",
+        "content, application/fhir+xml, xml",
+        "content, application/example+xml, xml",
+        "content, ' APPLICATION/FHIR+XML; charset=UTF-8 ', xml",
+        "resource, json, json",
+        "resource, xml, xml"
+    })
+    void transformsBinaryContent(String parameterName, String contentType, String format) throws Exception {
+        var request = readTransformRequest();
+        var parameter = request.getParameter("content").setName(parameterName);
+        var input = assertInstanceOf(org.hl7.fhir.r4b.model.Patient.class, parameter.getResource());
+        input.getNameFirstRep().setFamily("Garc\u00eda");
+        org.hl7.fhir.r4b.formats.IParser payloadParser = "json".equals(format)
+                ? new org.hl7.fhir.r4b.formats.JsonParser() : new org.hl7.fhir.r4b.formats.XmlParser();
+        String payload = payloadParser.composeString(input);
+        if ("json".equals(format)) {
+            payload = " \r\n" + payload;
+        }
+        parameter.setResource(new org.hl7.fhir.r4b.model.Binary()
+                .setContentType(contentType)
+                .setData(payload.getBytes(StandardCharsets.UTF_8)));
+
+        var patient = transformedPatient(performTransform(request), payloadParser, "content".equals(parameterName));
+        assertEquals("Garc\u00eda", patient.getNameFirstRep().getFamily());
+    }
+
+    @Test
+    void preservesBinaryXmlEncoding() throws Exception {
+        var request = readTransformRequest();
+        String xml = """
+                <?xml version="1.0" encoding="UTF-16"?>
+                <Patient xmlns="http://hl7.org/fhir">
+                  <id value="example"/>
+                  <name><family value="Garc\u00eda"/></name>
+                </Patient>
+                """;
+        request.getParameter("content").setResource(new org.hl7.fhir.r4b.model.Binary()
+                .setContentType("application/xml; charset=UTF-16")
+                .setData(xml.getBytes(StandardCharsets.UTF_16)));
+
+        var patient = transformedPatient(performTransform(request), new org.hl7.fhir.r4b.formats.XmlParser(), true);
+        assertEquals("Garc\u00eda", patient.getNameFirstRep().getFamily());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "json", "xml" })
+    void returnsLogicalOutputAsBinaryForContentRequests(String format) throws Exception {
+        var request = readTransformRequest();
+        var model = new org.hl7.fhir.r4b.model.StructureDefinition();
+        model.setUrl("http://example.org/StructureDefinition/Greeting");
+        model.setName("Greeting");
+        model.setStatus(org.hl7.fhir.r4b.model.Enumerations.PublicationStatus.ACTIVE);
+        model.setKind(org.hl7.fhir.r4b.model.StructureDefinition.StructureDefinitionKind.LOGICAL);
+        model.setAbstract(false);
+        model.setType("Greeting");
+        model.setBaseDefinition("http://hl7.org/fhir/StructureDefinition/Element");
+        model.setDerivation(org.hl7.fhir.r4b.model.StructureDefinition.TypeDerivationRule.SPECIALIZATION);
+        var root = model.getSnapshot().addElement().setPath("Greeting").setMin(0).setMax("*");
+        root.setId("Greeting");
+        var message = model.getSnapshot().addElement().setPath("Greeting.message").setMin(0).setMax("1");
+        message.setId("Greeting.message");
+        message.addType().setCode("string");
+        request.addParameter().setName("model").setResource(model);
+        request.getParameter("map").setValue(new org.hl7.fhir.r4b.model.StringType("""
+                map "http://example.org/StructureMap/greeting" = "GreetingMap"
+                uses "http://hl7.org/fhir/StructureDefinition/Patient" as source
+                uses "http://example.org/StructureDefinition/Greeting" as target
+                group patientMap(source src : Patient, target tgt : Greeting) {
+                  src -> tgt.message = 'Garc\u00eda' "message";
+                }
+                """));
+        var parameter = request.getParameter("content");
+        org.hl7.fhir.r4b.formats.IParser inputParser = "json".equals(format)
+                ? new org.hl7.fhir.r4b.formats.JsonParser() : new org.hl7.fhir.r4b.formats.XmlParser();
+        parameter.setResource(new org.hl7.fhir.r4b.model.Binary().setContentType(format)
+                .setData(inputParser.composeString(parameter.getResource()).getBytes(StandardCharsets.UTF_8)));
+
+        var response = assertInstanceOf(org.hl7.fhir.r4b.model.Parameters.class, performTransform(request));
+        assertEquals("return", response.getParameterFirstRep().getName());
+        assertEquals(1, response.getParameters("return").size());
+        assertEquals(0, response.getParameters("result").size());
+        var returned = response.getParameter("return");
+        assertFalse(returned.hasValue());
+        var binary = assertInstanceOf(org.hl7.fhir.r4b.model.Binary.class, returned.getResource());
+        String result = new String(binary.getData(), StandardCharsets.UTF_8);
+        assertEquals("application/" + format, binary.getContentType());
+        if ("json".equals(format)) {
+            var json = com.google.gson.JsonParser.parseString(result).getAsJsonObject();
+            assertEquals("Garc\u00eda", json.get("message").getAsString());
+        } else {
+            var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            var document = factory.newDocumentBuilder().parse(new java.io.ByteArrayInputStream(binary.getData()));
+            assertEquals("Greeting", document.getDocumentElement().getLocalName());
+            assertEquals("Garc\u00eda", ((org.w3c.dom.Element) document.getElementsByTagNameNS("*", "message").item(0))
+                    .getAttribute("value"));
+        }
+
+        parameter.setName("resource");
+        var legacyResponse = assertInstanceOf(org.hl7.fhir.r4b.model.Parameters.class, performTransform(request));
+        assertEquals(0, legacyResponse.getParameters("return").size());
+        assertEquals(1, legacyResponse.getParameters("result").size());
+        assertArrayEquals(legacyResponse.getParameterValue("result").primitiveValue().getBytes(StandardCharsets.UTF_8),
+                binary.getData());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "json", "xml" })
+    void returnsSameFhirContentInRequestedRepresentation(String format) throws Exception {
+        var request = readTransformRequest();
+        var parameter = request.getParameter("content");
+        org.hl7.fhir.r4b.formats.IParser payloadParser = "json".equals(format)
+                ? new org.hl7.fhir.r4b.formats.JsonParser() : new org.hl7.fhir.r4b.formats.XmlParser();
+        parameter.setResource(new org.hl7.fhir.r4b.model.Binary().setContentType(format)
+                .setData(payloadParser.composeString(parameter.getResource()).getBytes(StandardCharsets.UTF_8)));
+
+        var response = assertInstanceOf(org.hl7.fhir.r4b.model.Parameters.class, performTransform(request));
+        assertEquals(0, response.getParameters("result").size());
+        assertEquals(1, response.getParameters("return").size());
+        var returned = assertInstanceOf(org.hl7.fhir.r4b.model.Bundle.class, response.getParameter("return").getResource());
+
+        parameter.setName("resource");
+        var legacyResponse = assertInstanceOf(org.hl7.fhir.r4b.model.Parameters.class, performTransform(request));
+        assertEquals(0, legacyResponse.getParameters("return").size());
+        assertEquals(1, legacyResponse.getParameters("result").size());
+        var legacyResult = payloadParser.parse(legacyResponse.getParameterValue("result").primitiveValue());
+        assertTrue(legacyResult.equalsDeep(returned), "Both request formats must return the same transformed resource");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "json", "xml" })
+    void transformsLegacyStringResource(String format) throws Exception {
+        var request = readTransformRequest();
+        var parameter = request.getParameter("content").setName("resource");
+        org.hl7.fhir.r4b.formats.IParser payloadParser = "json".equals(format)
+                ? new org.hl7.fhir.r4b.formats.JsonParser() : new org.hl7.fhir.r4b.formats.XmlParser();
+        String payload = payloadParser.composeString(parameter.getResource());
+        parameter.setResource(null).setValue(new org.hl7.fhir.r4b.model.StringType(" \r\n" + payload + "\r\n "));
+
+        var patient = transformedPatient(performTransform(request), payloadParser, false);
+        assertEquals("Simpson", patient.getNameFirstRep().getFamily());
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "content, content", "resource, resource", "content, resource", "resource, content" })
+    void rejectsDuplicateInputResources(String firstName, String secondName) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setName(firstName);
+        request.addParameter().setName(secondName).setResource(new org.hl7.fhir.r4b.model.Patient());
+
+        assertInputError(request, "Provide exactly one content or resource parameter");
+    }
+
+    @Test
+    void rejectsMissingInputResource() throws Exception {
+        var request = readTransformRequest();
+        request.getParameter().remove(request.getParameter("content"));
+
+        assertInputError(request, "Missing content or resource parameter");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "content", "resource" })
+    void rejectsInvalidInputResourceType(String parameterName) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setName(parameterName).setResource(null)
+                .setValue(new org.hl7.fhir.r4b.model.IntegerType(1));
+
+        assertInputError(request, "Parameter '" + parameterName + "' must contain a resource"
+                + ("resource".equals(parameterName) ? " or valueString" : ""));
+    }
+
+    @Test
+    void requiresResourceForContentParameter() throws Exception {
+        var request = readTransformRequest();
+        var parameter = request.getParameter("content");
+        String payload = new org.hl7.fhir.r4b.formats.JsonParser().composeString(parameter.getResource());
+        parameter.setResource(null).setValue(new org.hl7.fhir.r4b.model.StringType(payload));
+
+        assertInputError(request, "Parameter 'content' must contain a resource");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { " " })
+    void rejectsBinaryWithoutContentType(String contentType) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setResource(new org.hl7.fhir.r4b.model.Binary()
+                .setContentType(contentType).setData("{}".getBytes(StandardCharsets.UTF_8)));
+
+        assertInputError(request, "Binary input must specify a contentType");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "text/plain", "application/octet-stream", "jsonish", "application/jsonp" })
+    void rejectsUnsupportedBinaryContentType(String contentType) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setResource(new org.hl7.fhir.r4b.model.Binary()
+                .setContentType(contentType).setData("{}".getBytes(StandardCharsets.UTF_8)));
+
+        assertInputError(request, "Unsupported Binary contentType '" + contentType + "': expected JSON or XML");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void rejectsBinaryWithoutData(boolean emptyData) throws Exception {
+        var request = readTransformRequest();
+        request.getParameter("content").setResource(new org.hl7.fhir.r4b.model.Binary()
+                .setContentType("json").setData(emptyData ? new byte[0] : null));
+
+        assertInputError(request, "Binary input must contain data");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "json", "xml" })
+    void rejectsBinaryContentTypeMismatch(String contentType) throws Exception {
+        var request = readTransformRequest();
+        var parameter = request.getParameter("content");
+        org.hl7.fhir.r4b.formats.IParser payloadParser = "json".equals(contentType)
+                ? new org.hl7.fhir.r4b.formats.XmlParser() : new org.hl7.fhir.r4b.formats.JsonParser();
+        byte[] payload = payloadParser.composeString(parameter.getResource()).getBytes(StandardCharsets.UTF_8);
+        parameter.setResource(new org.hl7.fhir.r4b.model.Binary().setContentType(contentType).setData(payload));
+
+        var outcome = assertInstanceOf(org.hl7.fhir.r4b.model.OperationOutcome.class, performTransform(request));
+        assertEquals(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR,
+                outcome.getIssueFirstRep().getSeverity());
     }
 
     @ParameterizedTest
@@ -229,6 +491,55 @@ class FmlTransformControllerTest extends TestBase {
             assertNotNull(fileExtension);
             assertEquals("supporting.map", fileExtension.getValue().primitiveValue());
             }
+
+    private org.hl7.fhir.r4b.model.Parameters readTransformRequest() throws Exception {
+        return (org.hl7.fhir.r4b.model.Parameters) new org.hl7.fhir.r4b.formats.JsonParser()
+                .parse(ReadTestFile("transform", "request", "json"));
+    }
+
+    private org.hl7.fhir.r4b.model.Resource performTransform(org.hl7.fhir.r4b.model.Parameters request) throws Exception {
+        var parser = new org.hl7.fhir.r4b.formats.JsonParser();
+        var result = mockMvc.perform(post("/fhir/$transform")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(parser.composeString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return parser.parse(result.getResponse().getContentAsString());
+    }
+
+    private org.hl7.fhir.r4b.model.Patient transformedPatient(org.hl7.fhir.r4b.model.Resource response,
+            org.hl7.fhir.r4b.formats.IParser resultParser, boolean standardInput) throws Exception {
+        var parameters = assertInstanceOf(org.hl7.fhir.r4b.model.Parameters.class, response);
+        org.hl7.fhir.r4b.model.Bundle bundle;
+        if (standardInput) {
+            assertEquals("return", parameters.getParameterFirstRep().getName());
+            assertEquals(0, parameters.getParameters("result").size());
+            assertEquals(1, parameters.getParameters("return").size());
+            assertFalse(parameters.getParameter("return").hasValue());
+            bundle = assertInstanceOf(org.hl7.fhir.r4b.model.Bundle.class, parameters.getParameter("return").getResource());
+        } else {
+            assertEquals("outcome", parameters.getParameterFirstRep().getName());
+            assertEquals("result", parameters.getParameter().get(1).getName());
+            assertEquals(0, parameters.getParameters("return").size());
+            assertEquals(1, parameters.getParameters("result").size());
+            assertFalse(parameters.getParameter("result").hasResource());
+            bundle = assertInstanceOf(org.hl7.fhir.r4b.model.Bundle.class,
+                    resultParser.parse(parameters.getParameterValue("result").primitiveValue()));
+        }
+        assertEquals("smile", bundle.getIdElement().getIdPart());
+        assertEquals(org.hl7.fhir.r4b.model.Bundle.BundleType.TRANSACTION, bundle.getType());
+        assertEquals(1, bundle.getEntry().size());
+        var patient = assertInstanceOf(org.hl7.fhir.r4b.model.Patient.class, bundle.getEntryFirstRep().getResource());
+        assertEquals("example", patient.getIdElement().getIdPart());
+        return patient;
+    }
+
+    private void assertInputError(org.hl7.fhir.r4b.model.Parameters request, String message) throws Exception {
+        var outcome = assertInstanceOf(org.hl7.fhir.r4b.model.OperationOutcome.class, performTransform(request));
+        assertEquals(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.ERROR,
+                outcome.getIssueFirstRep().getSeverity());
+        assertEquals(message, outcome.getIssueFirstRep().getDetails().getText());
+    }
 
             private static void addMap(org.hl7.fhir.r4b.model.Parameters request, String parameterName, String map,
                     String fileName) {

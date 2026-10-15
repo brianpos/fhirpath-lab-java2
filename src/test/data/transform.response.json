@@ -2,6 +2,39 @@
   "resourceType" : "Parameters",
   "id" : "map",
   "parameter" : [{
+    "name" : "return",
+    "resource" : {
+      "resourceType" : "Bundle",
+      "id" : "smile",
+      "type" : "transaction",
+      "entry" : [{
+        "fullUrl" : "http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/example",
+        "resource" : {
+          "resourceType" : "Patient",
+          "id" : "example",
+          "meta" : {
+            "versionId" : "290",
+            "lastUpdated" : "2024-07-03T15:52:48.578+00:00",
+            "source" : "#jgx7LXv30rtazIgL"
+          },
+          "text" : {
+            "status" : "generated",
+            "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Homer <b>SIMPSON </b></div><table class=\"hapiPropertyTable\"><tbody/></table></div>"
+          },
+          "name" : [{
+            "family" : "Simpson",
+            "given" : ["Homer"]
+          }],
+          "gender" : "male"
+        },
+        "request" : {
+          "method" : "POST",
+          "url" : "Observation"
+        }
+      }]
+    }
+  },
+  {
     "name" : "outcome",
     "resource" : {
       "resourceType" : "OperationOutcome",
@@ -11,10 +44,6 @@
         "diagnostics" : "Transformation completed successfully"
       }]
     }
-  },
-  {
-    "name" : "result",
-    "valueString" : "{\r\n  \"resourceType\" : \"Bundle\",\r\n  \"id\" : \"smile\",\r\n  \"type\" : \"transaction\",\r\n  \"entry\" : [{\r\n    \"fullUrl\" : \"http://hl7.org/fhir/us/sdoh-clinicalcare/Patient/example\",\r\n    \"resource\" : {\r\n      \"resourceType\" : \"Patient\",\r\n      \"id\" : \"example\",\r\n      \"meta\" : {\r\n        \"versionId\" : \"290\",\r\n        \"lastUpdated\" : \"2024-07-03T15:52:48.578+00:00\",\r\n        \"source\" : \"#jgx7LXv30rtazIgL\"\r\n      },\r\n      \"text\" : {\r\n        \"status\" : \"generated\",\r\n        \"div\" : \"<div xmlns=\\\"http://www.w3.org/1999/xhtml\\\"><div class=\\\"hapiHeaderText\\\">Homer <b>SIMPSON </b></div><table class=\\\"hapiPropertyTable\\\"><tbody/></table></div>\"\r\n      },\r\n      \"name\" : [{\r\n        \"family\" : \"Simpson\",\r\n        \"given\" : [\"Homer\"]\r\n      }],\r\n      \"gender\" : \"male\"\r\n    },\r\n    \"request\" : {\r\n      \"method\" : \"POST\",\r\n      \"url\" : \"Observation\"\r\n    }\r\n  }]\r\n}"
   },
   {
     "name" : "parameters",

@@ -19,6 +19,7 @@ import org.hl7.fhir.utilities.i18n.I18nConstants;
 import org.hl7.fhir.utilities.validation.ValidationMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.hl7.fhir.r4b.model.Binary;
 import org.hl7.fhir.r4b.model.Bundle;
 import org.hl7.fhir.r4b.model.Parameters;
 import org.hl7.fhir.r4b.model.StringType;
@@ -36,8 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
 
-import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
@@ -65,13 +66,11 @@ public class FmlTransformController {
     /**
      * Handles POST requests for $transform requests.
      *
-     * This method parses the incoming content based on its type (JSON or XML),
-     * converts it to a FHIR Patient object, and performs necessary operations.
+     * Parses JSON or XML Parameters and transforms the supplied content using FML maps.
      *
-     * @param content     The string content of the FHIR Patient resource.
-     * @param contentType The MIME type of the content.
-     * @return A confirmation message with the patient ID or an error message.
-     * @throws Exception if the content cannot be parsed correctly.
+     * @param content     The serialized Parameters resource.
+     * @param contentType The MIME type of the request.
+     * @return The transformation results or an OperationOutcome describing the error.
      */
     @PostMapping(value = "/$transform", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE,
             "application/fhir+json;fhirVersion=4.0" })
@@ -103,10 +102,10 @@ public class FmlTransformController {
         }
 
         try {
-            // Parse the input content into a Patient resource
             var parameters = (org.hl7.fhir.r4b.model.Parameters) parser.parse(content);
 
             List<Parameters.ParametersParameterComponent> mapParameters = new ArrayList<>();
+            List<Parameters.ParametersParameterComponent> contentParameters = new ArrayList<>();
             for (Parameters.ParametersParameterComponent parameter : parameters.getParameter()) {
                 String name = parameter.getName();
                 if ("source".equals(name) || "sourceMap".equals(name) || "supportingMap".equals(name)) {
@@ -115,19 +114,16 @@ public class FmlTransformController {
                 if ("map".equals(name) || "srcMap".equals(name)) {
                     mapParameters.add(parameter);
                 }
+                if ("content".equals(name) || "resource".equals(name)) {
+                    contentParameters.add(parameter);
+                }
             }
 
-            // read the `resource` named parameter
-            org.hl7.fhir.r5.elementmodel.Element sourceResource = null;
-            String resourceText = null;
-            var resource = parameters.getParameter("resource").getResource();
-            if (resource != null) {
-                resourceText = jsonParser.composeString(resource);
-            } else {
-                var pv = parameters.getParameterValue("resource");
-                if (pv instanceof StringType) {
-                    resourceText = pv.primitiveValue().trim();
-                }
+            if (contentParameters.isEmpty()) {
+                throw new FHIRException("Missing content or resource parameter");
+            }
+            if (contentParameters.size() != 1) {
+                throw new FHIRException("Provide exactly one content or resource parameter");
             }
 
             // Create a new context for the call
@@ -183,27 +179,48 @@ public class FmlTransformController {
             }
             errorMapFile = primaryMapFile;
 
-            InputStream inputStream = new ByteArrayInputStream(resourceText.getBytes(StandardCharsets.UTF_8));
-            try {
-                if (resourceText.startsWith("{")) {
-                    sourceResource = Manager.parseSingle(localContext, inputStream, FhirFormat.JSON);
-                    inputFormatIsJson = true;
-                } else {
-                    sourceResource = Manager.parseSingle(localContext, inputStream, FhirFormat.XML);
-                    inputFormatIsJson = false;
+            var contentParameter = contentParameters.get(0);
+            var resource = contentParameter.getResource();
+            byte[] resourceBytes;
+            FhirFormat resourceFormat;
+            if (resource instanceof Binary binary) {
+                resourceFormat = getBinaryInputFormat(binary.getContentType());
+                if (!binary.hasData()) {
+                    throw new FHIRException("Binary input must contain data");
                 }
+                resourceBytes = binary.getData();
+            } else if (resource != null) {
+                resourceBytes = jsonParser.composeString(resource).getBytes(StandardCharsets.UTF_8);
+                resourceFormat = FhirFormat.JSON;
+            } else if ("resource".equals(contentParameter.getName())
+                    && contentParameter.getValue() instanceof StringType text && text.hasValue()) {
+                String resourceText = text.getValue().trim();
+                if (resourceText.isEmpty()) {
+                    throw new FHIRException("Input resource must not be empty");
+                }
+                resourceBytes = resourceText.getBytes(StandardCharsets.UTF_8);
+                resourceFormat = resourceText.startsWith("{") ? FhirFormat.JSON : FhirFormat.XML;
+            } else {
+                throw new FHIRException("Parameter '" + contentParameter.getName() + "' must contain a resource"
+                        + ("resource".equals(contentParameter.getName()) ? " or valueString" : ""));
+            }
+            inputFormatIsJson = resourceFormat == FhirFormat.JSON;
+
+            org.hl7.fhir.r5.elementmodel.Element sourceResource;
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(resourceBytes);
+            try {
+                sourceResource = Manager.parseSingle(localContext, inputStream, resourceFormat);
             } catch (FHIRFormatError e) {
                 // This isn't a native FHIR resource, so use a generic parser (which may be able
                 // to handle the logical models)
+                inputStream.reset();
                 List<ValidatedFragment> fragments;
-                if (resourceText.startsWith("{")) {
+                if (inputFormatIsJson) {
                     var rawJsonParser = new org.hl7.fhir.r5.elementmodel.JsonParser(localContext);
                     fragments = rawJsonParser.parse(inputStream);
-                    inputFormatIsJson = true;
                 } else {
                     var rawXmlParser = new org.hl7.fhir.r5.elementmodel.XmlParser(localContext);
                     fragments = rawXmlParser.parse(inputStream);
-                    inputFormatIsJson = false;
                 }
                 if (fragments.size() == 1) {
                     sourceResource = fragments.get(0).getElement();
@@ -212,13 +229,9 @@ public class FmlTransformController {
                 }
             }
 
-            // By using the local context here we are possibly permitting a logical model
-            // be used as the target resource, not sure if that really should be
-            // permitted...
             org.hl7.fhir.r5.elementmodel.Element target = getTargetResourceFromStructureMap(localContext, map);
             smu.transform(null, sourceResource, map, target);
 
-            // convert the result back into json
             org.hl7.fhir.r5.elementmodel.ParserBase outputParser;
             if (inputFormatIsJson) {
                 outputParser = new org.hl7.fhir.r5.elementmodel.JsonParser(localContext);
@@ -227,9 +240,23 @@ public class FmlTransformController {
             }
             ByteArrayOutputStream boas = new ByteArrayOutputStream();
             outputParser.compose(target, boas, OutputStyle.PRETTY, null);
-            var result = new String(boas.toByteArray());
+            var result = boas.toString(StandardCharsets.UTF_8);
             boas.close();
-            resultPart.setValue(new org.hl7.fhir.r4b.model.StringType(result));
+
+            if ("content".equals(contentParameter.getName())) {
+                resultPart.setName("return");
+                responseParameters.getParameter().remove(resultPart);
+                responseParameters.getParameter().add(0, resultPart);
+                if (target.getProperty().getStructure().getKind() == StructureDefinition.StructureDefinitionKind.RESOURCE) {
+                    resultPart.setResource(inputFormatIsJson ? jsonParser.parse(result) : xmlParser.parse(result));
+                } else {
+                    resultPart.setResource(new Binary()
+                            .setContentType(inputFormatIsJson ? MediaType.APPLICATION_JSON_VALUE : MediaType.APPLICATION_XML_VALUE)
+                            .setData(boas.toByteArray()));
+                }
+            } else {
+                resultPart.setValue(new org.hl7.fhir.r4b.model.StringType(result));
+            }
 
             outcome.addIssue().setSeverity(org.hl7.fhir.r4b.model.OperationOutcome.IssueSeverity.INFORMATION)
                     .setCode(org.hl7.fhir.r4b.model.OperationOutcome.IssueType.INFORMATIONAL)
@@ -252,6 +279,20 @@ public class FmlTransformController {
                 return new ResponseEntity<>(ep.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
+    }
+
+    private static FhirFormat getBinaryInputFormat(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new FHIRException("Binary input must specify a contentType");
+        }
+        String format = contentType.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+        if ("json".equals(format) || format.endsWith("/json") || format.endsWith("+json")) {
+            return FhirFormat.JSON;
+        }
+        if ("xml".equals(format) || format.endsWith("/xml") || format.endsWith("+xml")) {
+            return FhirFormat.XML;
+        }
+        throw new FHIRException("Unsupported Binary contentType '" + contentType + "': expected JSON or XML");
     }
 
     private static String getStringExtension(org.hl7.fhir.r4b.model.BackboneElement element, String url) {
