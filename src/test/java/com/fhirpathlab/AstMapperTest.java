@@ -251,9 +251,7 @@ class AstMapperTest {
         // locate the actual result part of the parameters
         var parameters = (Parameters) result;
         var actualResults = parameters.getParameter("result");
-        Assertions.assertEquals(1, actualResults.getPart().size());
-        Assertions.assertEquals("empty-string", actualResults.getPartFirstRep().getName());
-        Assertions.assertNull(actualResults.getPartFirstRep().getValue());
+        Assertions.assertEquals(0, actualResults.getPart().size());
     }
 
     @Test

@@ -84,7 +84,7 @@ public class FmlTransformController {
         ParamUtils.add(responseParameters, "outcome", outcome);
         var resultPart = ParamUtils.add(responseParameters, "result");
         var paramsPart = ParamUtils.add(responseParameters, "parameters");
-        ParamUtils.add(paramsPart, "evaluator", "Java 6.10.2 (r4b)");
+        ParamUtils.add(paramsPart, "evaluator", "Java 7.0.1 (r4b)");
         String primaryMapFile = null;
         String errorMapFile = null;
 

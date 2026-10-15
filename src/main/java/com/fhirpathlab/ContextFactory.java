@@ -8,11 +8,11 @@ import java.util.Set;
 import org.fhir.ucum.UcumEssenceService;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.IContextResourceLoader;
-import org.hl7.fhir.r5.context.SimpleWorkerContext.PackageResourceLoader;
+import org.hl7.fhir.r5.context.PackageResourceLoader;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.Resource;
-import org.hl7.fhir.r5.terminologies.client.TerminologyClientManager.ITerminologyClientFactory;
+import org.hl7.fhir.r5.terminologies.client.ITerminologyClientFactory5;
 import org.hl7.fhir.utilities.npm.FilesystemPackageCacheManager;
 import org.hl7.fhir.utilities.npm.NpmPackage;
 import org.hl7.fhir.utilities.npm.NpmPackage.PackageResourceInformation;
@@ -222,7 +222,7 @@ class R5ContextLoader implements org.hl7.fhir.r5.context.IContextResourceLoader 
   }
 
   @Override
-  public ITerminologyClientFactory txFactory() {
+  public ITerminologyClientFactory5 txFactory() {
     throw new UnsupportedOperationException("Unimplemented method 'txFactory'");
   }
 
